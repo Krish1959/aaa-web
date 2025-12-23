@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title }} - Submitted</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #0b1220; color: #eaf0ff; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 28px 16px 60px; }
+    .card { background: #121b2f; border: 1px solid #223055; border-radius: 16px; padding: 20px; box-shadow: 0 10px 24px rgba(0,0,0,.25); }
+    a { color: #6aa7ff; text-decoration: none; }
+    .pill { display:inline-block; padding: 6px 10px; border-radius: 999px; background: #0c1427; border: 1px solid #2b3a64; margin-right: 6px; }
+    .btn { display:inline-block; margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: #2c7dff; color: white; font-weight: 700; }
+    pre { white-space: pre-wrap; background:#0c1427; border:1px solid #2b3a64; padding:12px; border-radius:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Submitted ✅</h2>
+      <div class="pill">Stage {{ record.stage }}</div>
+      <div class="pill">{{ record.created_at }}</div>
+
+      <h3>Record</h3>
+      <pre>{{ record | tojson(indent=2) }}</pre>
+
+      <h3>GitHub Storage</h3>
+      {% if gh.skipped %}
+        <p>Skipped GitHub write: {{ gh.reason }}</p>
+      {% else %}
+        <p>Saved to GitHub. Commit: <code>{{ gh.commit }}</code></p>
+      {% endif %}
+
+      <a class="btn" href="/">Submit another</a>
+    </div>
+  </div>
+</body>
+</html>
