@@ -6,6 +6,10 @@ import sqlite3
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+import hashlib
+from services.scraper import scrape_website
+from services.text_cleaner import chunk_text
+
 import requests
 from flask import Flask, render_template, request
 
@@ -175,6 +179,33 @@ def submit():
     # Append to GitHub "DB"
     gh = append_record_to_github_jsonl(record)
 
+    # ---- STAGE 2: Scrape + Context Build ----
+    scraped = scrape_website(web_url)
+    chunks = chunk_text(scraped["content"])
+
+    context = {
+        "source_url": web_url,
+        "title": scraped["title"],
+        "chunks": chunks,
+        "created_at": record["created_at"]
+    }
+
+    context_id = hashlib.sha256(web_url.encode()).hexdigest()[:12]
+    context_path = f"data/contexts/{context_id}.json"
+
+    append_record_to_github_jsonl(record)  # already exists
+
+    # Save context JSON to GitHub
+    existing_text, sha = github_get_file(GITHUB_REPO, context_path, GITHUB_BRANCH)
+    github_put_file(
+        GITHUB_REPO,
+        context_path,
+        GITHUB_BRANCH,
+        json.dumps(context, indent=2),
+        sha
+    )
+
+
     return render_template("success.html", title=APP_TITLE, record=record, gh=gh)
 
 
@@ -183,3 +214,4 @@ if __name__ == "__main__":
     # Render uses PORT env var
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port)
+
