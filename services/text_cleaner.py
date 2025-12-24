@@ -16,3 +16,4 @@ def chunk_text(lines, chunk_size=500):
         chunks.append(buffer.strip())
 
     return chunks
+
