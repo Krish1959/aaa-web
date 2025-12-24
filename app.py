@@ -26,8 +26,6 @@ SQLITE_PATH = os.getenv("SQLITE_PATH", "local_submissions.db")
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
-app = Flask(__name__)
-
 
 def is_valid_url(u: str) -> bool:
     try:
@@ -56,6 +54,8 @@ def init_sqlite():
     conn.commit()
     conn.close()
 
+app = Flask(__name__)
+init_sqlite()
 
 def save_to_sqlite(record: dict):
     conn = sqlite3.connect(SQLITE_PATH)
@@ -170,7 +170,7 @@ def submit():
         "company": company,
         "email": email,
         "web_url": web_url,
-        "stage": 1,
+        "stage": 2,
     }
 
     # Always save locally too (good audit trail on the running service)
@@ -193,8 +193,7 @@ def submit():
     context_id = hashlib.sha256(web_url.encode()).hexdigest()[:12]
     context_path = f"data/contexts/{context_id}.json"
 
-    append_record_to_github_jsonl(record)  # already exists
-
+    
     # Save context JSON to GitHub
     existing_text, sha = github_get_file(GITHUB_REPO, context_path, GITHUB_BRANCH)
     github_put_file(
@@ -210,7 +209,6 @@ def submit():
 
 
 if __name__ == "__main__":
-    init_sqlite()
     # Render uses PORT env var
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port)
