@@ -17,16 +17,13 @@
     .btn:hover { filter: brightness(1.05); }
     .errors { background: #3a1b1b; border: 1px solid #ff6a6a; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
     .errors li { margin: 6px 0; }
-    .footer { margin-top: 18px; color:#98a6cc; font-size: 13px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>{{ title }}</h1>
-      <p class="sub">
-        Stage 1: Collect user + company info and store it in GitHub as a JSONL “database”.
-      </p>
+      <p class="sub">Step 1: Capture user details and store in GitHub with a timestamp.</p>
 
       {% if errors %}
       <div class="errors">
@@ -44,20 +41,19 @@
         <input name="name" placeholder="Your name" value="{{ (form.name if form else '') }}" required />
 
         <label>Company</label>
-        <input name="company" placeholder="Company name" value="{{ (form.company if form else '') }}" required />
+        <input name="company" placeholder="Company / Institution" value="{{ (form.company if form else '') }}" required />
 
         <label>Email</label>
         <input name="email" type="email" placeholder="name@company.com" value="{{ (form.email if form else '') }}" required />
+
+        <label>Phone (optional)</label>
+        <input name="phone" placeholder="+65 9xxxxxxx" value="{{ (form.phone if form else '') }}" />
 
         <label>Web URL</label>
         <input name="web_url" placeholder="https://example.com" value="{{ (form.web_url if form else '') }}" required />
 
         <button class="btn" type="submit">Submit</button>
       </form>
-
-      <div class="footer">
-        Note: Web URL must start with http:// or https://
-      </div>
     </div>
   </div>
 </body>

@@ -6,10 +6,6 @@ import sqlite3
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-import hashlib
-from services.scraper import scrape_website
-from services.text_cleaner import chunk_text
-
 import requests
 from flask import Flask, render_template, request
 
@@ -17,7 +13,7 @@ APP_TITLE = "AVATAR AGENTIC AI APPLICATION"
 
 # ---- Config via environment variables (Render -> Environment) ----
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
-GITHUB_REPO = os.getenv("GITHUB_REPO", "").strip()  # e.g. "Krish1959/avatar-agentic-ai"
+GITHUB_REPO = os.getenv("GITHUB_REPO", "").strip()        # e.g. "Krish1959/aaa-web"
 GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main").strip()
 GITHUB_DB_PATH = os.getenv("GITHUB_DB_PATH", "data/submissions.jsonl").strip()
 
@@ -25,6 +21,7 @@ GITHUB_DB_PATH = os.getenv("GITHUB_DB_PATH", "data/submissions.jsonl").strip()
 SQLITE_PATH = os.getenv("SQLITE_PATH", "local_submissions.db")
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+PHONE_RE = re.compile(r"^[0-9+\-\s()]{6,20}$")
 
 
 def is_valid_url(u: str) -> bool:
@@ -46,6 +43,7 @@ def init_sqlite():
             name TEXT NOT NULL,
             company TEXT NOT NULL,
             email TEXT NOT NULL,
+            phone TEXT,
             web_url TEXT NOT NULL,
             raw_json TEXT NOT NULL
         )
@@ -54,22 +52,21 @@ def init_sqlite():
     conn.commit()
     conn.close()
 
-app = Flask(__name__)
-init_sqlite()
 
 def save_to_sqlite(record: dict):
     conn = sqlite3.connect(SQLITE_PATH)
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO submissions (created_at, name, company, email, web_url, raw_json)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO submissions (created_at, name, company, email, phone, web_url, raw_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (
             record["created_at"],
             record["name"],
             record["company"],
             record["email"],
+            record.get("phone"),
             record["web_url"],
             json.dumps(record, ensure_ascii=False),
         ),
@@ -108,7 +105,7 @@ def github_get_file(repo: str, path: str, branch: str):
 def github_put_file(repo: str, path: str, branch: str, new_text: str, sha: str | None):
     url = f"https://api.github.com/repos/{repo}/contents/{path}"
     payload = {
-        "message": f"Append submission to {path}",
+        "message": f"Update {path}",
         "content": base64.b64encode(new_text.encode("utf-8")).decode("utf-8"),
         "branch": branch,
     }
@@ -123,19 +120,23 @@ def github_put_file(repo: str, path: str, branch: str, new_text: str, sha: str |
 def append_record_to_github_jsonl(record: dict):
     """
     GitHub 'database' = JSON Lines file:
-    each line is one JSON object.
+    each line is one JSON object appended to data/submissions.jsonl
     """
     if not (GITHUB_TOKEN and GITHUB_REPO):
-        # Allow running locally without GitHub configured
         return {"skipped": True, "reason": "GITHUB_TOKEN or GITHUB_REPO not set"}
 
     existing_text, sha = github_get_file(GITHUB_REPO, GITHUB_DB_PATH, GITHUB_BRANCH)
     line = json.dumps(record, ensure_ascii=False)
+
     new_text = existing_text + ("" if existing_text.endswith("\n") or existing_text == "" else "\n")
     new_text += line + "\n"
 
     result = github_put_file(GITHUB_REPO, GITHUB_DB_PATH, GITHUB_BRANCH, new_text, sha)
     return {"skipped": False, "commit": result.get("commit", {}).get("sha")}
+
+
+app = Flask(__name__)
+init_sqlite()
 
 
 @app.route("/", methods=["GET"])
@@ -148,6 +149,7 @@ def submit():
     name = (request.form.get("name") or "").strip()
     company = (request.form.get("company") or "").strip()
     email = (request.form.get("email") or "").strip()
+    phone = (request.form.get("phone") or "").strip()
     web_url = (request.form.get("web_url") or "").strip()
 
     errors = []
@@ -157,59 +159,38 @@ def submit():
         errors.append("Company must be at least 2 characters.")
     if not EMAIL_RE.match(email):
         errors.append("Please enter a valid email address.")
+    if phone and not PHONE_RE.match(phone):
+        errors.append("Phone looks invalid (use digits, +, spaces, - or brackets).")
     if not is_valid_url(web_url):
         errors.append("Please enter a valid web URL starting with http:// or https://")
 
     if errors:
-        return render_template("index.html", title=APP_TITLE, errors=errors,
-                               form={"name": name, "company": company, "email": email, "web_url": web_url}), 400
+        return render_template(
+            "index.html",
+            title=APP_TITLE,
+            errors=errors,
+            form={"name": name, "company": company, "email": email, "phone": phone, "web_url": web_url},
+        ), 400
 
     record = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "name": name,
         "company": company,
         "email": email,
+        "phone": phone if phone else None,
         "web_url": web_url,
-        "stage": 2,
+        "stage": 1,
     }
 
-    # Always save locally too (good audit trail on the running service)
+    # Optional local audit
     save_to_sqlite(record)
 
-    # Append to GitHub "DB"
+    # GitHub "DB" append
     gh = append_record_to_github_jsonl(record)
-
-    # ---- STAGE 2: Scrape + Context Build ----
-    scraped = scrape_website(web_url)
-    chunks = chunk_text(scraped["content"])
-
-    context = {
-        "source_url": web_url,
-        "title": scraped["title"],
-        "chunks": chunks,
-        "created_at": record["created_at"]
-    }
-
-    context_id = hashlib.sha256(web_url.encode()).hexdigest()[:12]
-    context_path = f"data/contexts/{context_id}.json"
-
-    
-    # Save context JSON to GitHub
-    existing_text, sha = github_get_file(GITHUB_REPO, context_path, GITHUB_BRANCH)
-    github_put_file(
-        GITHUB_REPO,
-        context_path,
-        GITHUB_BRANCH,
-        json.dumps(context, indent=2),
-        sha
-    )
-
 
     return render_template("success.html", title=APP_TITLE, record=record, gh=gh)
 
 
 if __name__ == "__main__":
-    # Render uses PORT env var
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port)
-
