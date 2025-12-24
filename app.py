@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 import re
@@ -9,6 +10,9 @@ from urllib.parse import urlparse
 import requests
 from flask import Flask, render_template, request
 
+from services.scraper import scrape_site
+from services.text_cleaner import chunk_text_with_provenance
+
 APP_TITLE = "AVATAR AGENTIC AI APPLICATION"
 
 # ---- Config via environment variables (Render -> Environment) ----
@@ -16,6 +20,10 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
 GITHUB_REPO = os.getenv("GITHUB_REPO", "").strip()        # e.g. "Krish1959/aaa-web"
 GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main").strip()
 GITHUB_DB_PATH = os.getenv("GITHUB_DB_PATH", "data/submissions.jsonl").strip()
+
+# Scraping controls
+MAX_PAGES = int(os.getenv("MAX_PAGES", "5"))
+MAX_CHARS_PER_PAGE = int(os.getenv("MAX_CHARS_PER_PAGE", "20000"))
 
 # Local DB (optional fallback / audit)
 SQLITE_PATH = os.getenv("SQLITE_PATH", "local_submissions.db")
@@ -135,6 +143,94 @@ def append_record_to_github_jsonl(record: dict):
     return {"skipped": False, "commit": result.get("commit", {}).get("sha")}
 
 
+def write_entry_context_json(entry_id: str, entry_obj: dict):
+    """
+    Writes/updates the per-entry JSON file:
+      data/contexts/by-entry/<entry_id>.json
+    """
+    if not (GITHUB_TOKEN and GITHUB_REPO):
+        return {"skipped": True, "reason": "GITHUB_TOKEN or GITHUB_REPO not set"}
+
+    path = f"data/contexts/by-entry/{entry_id}.json"
+    existing_text, sha = github_get_file(GITHUB_REPO, path, GITHUB_BRANCH)
+
+    result = github_put_file(
+        GITHUB_REPO,
+        path,
+        GITHUB_BRANCH,
+        json.dumps(entry_obj, indent=2, ensure_ascii=False),
+        sha,
+    )
+    return {"skipped": False, "path": path, "commit": result.get("commit", {}).get("sha")}
+
+
+def resolve_final_url_and_redirects(url: str):
+    """
+    Returns: final_url, final_host, redirect_chain, http_status
+    """
+    redirect_chain = []
+    try:
+        r = requests.get(url, timeout=25, allow_redirects=True, stream=True)
+        http_status = r.status_code
+        final_url = r.url
+        final_host = urlparse(final_url).hostname or ""
+
+        for resp in r.history:
+            redirect_chain.append(
+                {
+                    "from": resp.url,
+                    "to": resp.headers.get("Location", ""),
+                    "status": resp.status_code,
+                }
+            )
+
+        return final_url, final_host, redirect_chain, http_status
+    except Exception as e:
+        return url, "", [], 0
+
+
+def derive_xxxx_from_host(host: str) -> str:
+    """
+    Your rule (v1):
+    - if host starts with www. -> xxxx is the label immediately after www
+    - else -> xxxx is the first label
+    """
+    host = (host or "").lower().strip(".")
+    if host.startswith("www."):
+        parts = host.split(".")
+        return parts[1] if len(parts) > 1 else "unknown"
+    return host.split(".")[0] if host else "unknown"
+
+
+def make_entry_id(record: dict) -> str:
+    raw = f'{record["created_at"]}|{record["email"]}|{record["web_url"]}'
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def build_full_prompt(xxxx: str, chunks: list[dict]) -> str:
+    """
+    v1 prompt: scope & safety + short style + scraped content
+    """
+    content = "\n\n".join([c["text"] for c in chunks[:30]])  # cap for v1
+    return f"""
+You are a passionate teacher acting as a mediator for learners.
+
+Scope & safety:
+Keep the conversation focused exclusively on {xxxx} and related information only.
+Bounce all other topics with this fixed sentence:
+"Let us focus only on {xxxx} only"
+Categorically deny answering any topic outside the scope defined here.
+
+Style & tone:
+Use short replies: 1–3 concise sentences or a short paragraph.
+Be clear, friendly, and encouraging.
+
+CONTENT (scraped):
+---------------------------------
+{content}
+""".strip()
+
+
 app = Flask(__name__)
 init_sqlite()
 
@@ -172,23 +268,135 @@ def submit():
             form={"name": name, "company": company, "email": email, "phone": phone, "web_url": web_url},
         ), 400
 
+    created_at = datetime.now(timezone.utc).isoformat()
+
     record = {
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": created_at,
         "name": name,
         "company": company,
         "email": email,
         "phone": phone if phone else None,
         "web_url": web_url,
-        "stage": 1,
+        "stage": 2,  # now includes scraping + per-entry context file
     }
 
-    # Optional local audit
+    # Local audit
     save_to_sqlite(record)
 
-    # GitHub "DB" append
+    # GitHub DB append (submissions.jsonl)
     gh = append_record_to_github_jsonl(record)
 
-    return render_template("success.html", title=APP_TITLE, record=record, gh=gh)
+    # Resolve final URL/host and compute xxxx
+    final_url, final_host, redirect_chain, http_status = resolve_final_url_and_redirects(web_url)
+    xxxx = derive_xxxx_from_host(final_host)
+
+    # Create entry_id
+    entry_id = make_entry_id(record)
+
+    # Build per-entry JSON skeleton
+    entry_obj = {
+        "schema_version": "1.0",
+        "entry_id": entry_id,
+        "identity": {
+            "xxxx": xxxx,
+            "input_url": web_url,
+            "final_url": final_url,
+            "final_host": final_host,
+            "canonical_url": None,
+        },
+        "fetch": {
+            "fetched_at_utc": created_at,
+            "http_status": http_status,
+            "user_agent": "Mozilla/5.0 (AgenticAvatarBot/1.0)",
+            "redirect_chain": redirect_chain,
+            "robots_respected": True,
+            "paywall_detected": False,
+            "errors": [],
+        },
+        "crawl_policy": {
+            "scope_rule": "same_domain_only",
+            "registrable_domain": None,
+            "max_pages": MAX_PAGES,
+            "max_depth": 1,
+            "deny_url_patterns": [],
+            "allow_url_patterns": [],
+        },
+        "pages": [],
+        "links": {"internal_links_discovered": [], "internal_links_selected": []},
+        "chunks": [],
+        "prompt_engineering": {
+            "name": xxxx.upper(),
+            "opening_intro": f"Let us talk about {xxxx}",
+            "scope_safety": {
+                "topic_label": xxxx,
+                "bounce_sentence": f"Let us focus only on {xxxx} only",
+                "deny_out_of_scope": True,
+            },
+            "style_tone": {
+                "persona": "passionate teacher",
+                "reply_length": "short",
+                "tone": ["clear", "friendly", "encouraging"],
+            },
+            "full_prompt": "",
+            "source_index": [],
+        },
+        "heygen_liveavatar": {
+            "push_status": "not_pushed",
+            "request_payload": {"name": "", "opening_intro": "", "links": [], "full_prompt": ""},
+            "response": {"context_id": None, "context_url": None, "raw": {}},
+            "pushed_at_utc": None,
+            "error": None,
+        },
+        "submission": {
+            "name": record["name"],
+            "company": record["company"],
+            "email": record["email"],
+            "phone": record.get("phone"),
+        },
+    }
+
+    # --- Scrape site (homepage + internal pages) ---
+    try:
+        scrape_result = scrape_site(final_url, max_pages=MAX_PAGES, max_chars_per_page=MAX_CHARS_PER_PAGE)
+        entry_obj["crawl_policy"]["registrable_domain"] = scrape_result.get("base_host_key")
+
+        # Links
+        entry_obj["links"]["internal_links_discovered"] = scrape_result.get("links", [])
+        entry_obj["links"]["internal_links_selected"] = [x["url"] for x in scrape_result.get("links", [])[:10]]
+
+        # Pages + chunks
+        all_chunks = []
+        for p in scrape_result.get("pages", []):
+            clean_text = p.pop("clean_text", "")  # remove to keep JSON small
+            entry_obj["pages"].append(p)
+
+            if clean_text:
+                all_chunks.extend(chunk_text_with_provenance(p.get("final_url") or p.get("url"), clean_text))
+
+        entry_obj["chunks"] = all_chunks
+
+        # Source index (for future UI)
+        entry_obj["prompt_engineering"]["source_index"] = [
+            {"label": f"Source {i+1}", "url": u} for i, u in enumerate(entry_obj["links"]["internal_links_selected"])
+        ]
+
+        # Full prompt
+        entry_obj["prompt_engineering"]["full_prompt"] = build_full_prompt(xxxx, all_chunks)
+
+    except Exception as e:
+        entry_obj["fetch"]["errors"].append({"stage": "scrape", "url": final_url, "message": str(e)})
+
+    # Write per-entry JSON to GitHub
+    ctx_write = write_entry_context_json(entry_id, entry_obj)
+
+    return render_template(
+        "success.html",
+        title=APP_TITLE,
+        record=record,
+        gh=gh,
+        ctx=ctx_write,
+        entry=entry_obj,
+    )
 
 
 if __name__ == "__main__":
