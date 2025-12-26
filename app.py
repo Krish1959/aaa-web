@@ -189,7 +189,7 @@ def resolve_final_url_and_redirects(url: str):
             )
 
         return final_url, final_host, redirect_chain, http_status
-    except Exception as e:
+    except Exception:
         return url, "", [], 0
 
 
@@ -212,10 +212,7 @@ def make_entry_id(record: dict) -> str:
 
 
 def build_full_prompt(xxxx: str, chunks: list[dict]) -> str:
-    """
-    v1 prompt: scope & safety + short style + scraped content
-    """
-    content = "\n\n".join([c["text"] for c in chunks[:30]])  # cap for v1
+    content = "\n\n".join([c["text"] for c in chunks[:30]])
     return f"""
 You are a passionate teacher acting as a mediator for learners.
 
@@ -281,23 +278,16 @@ def submit():
         "email": email,
         "phone": phone if phone else None,
         "web_url": web_url,
-        "stage": 2,  # now includes scraping + per-entry context file
+        "stage": 2,
     }
 
-    # Local audit
     save_to_sqlite(record)
-
-    # GitHub DB append (submissions.jsonl)
     gh = append_record_to_github_jsonl(record)
 
-    # Resolve final URL/host and compute xxxx
     final_url, final_host, redirect_chain, http_status = resolve_final_url_and_redirects(web_url)
     xxxx = derive_xxxx_from_host(final_host)
-
-    # Create entry_id
     entry_id = make_entry_id(record)
 
-    # Build per-entry JSON skeleton
     entry_obj = {
         "schema_version": "1.0",
         "entry_id": entry_id,
@@ -359,73 +349,74 @@ def submit():
         },
     }
 
-    # --- Scrape site (homepage + internal pages) ---
+    # --- Scrape site ---
     try:
         scrape_result = scrape_site(final_url, max_pages=MAX_PAGES, max_chars_per_page=MAX_CHARS_PER_PAGE)
         entry_obj["crawl_policy"]["registrable_domain"] = scrape_result.get("base_host_key")
 
-        # Links
         entry_obj["links"]["internal_links_discovered"] = scrape_result.get("links", [])
         entry_obj["links"]["internal_links_selected"] = [x["url"] for x in scrape_result.get("links", [])[:10]]
 
-        # Pages + chunks
         all_chunks = []
         for p in scrape_result.get("pages", []):
-            clean_text = p.pop("clean_text", "")  # remove to keep JSON small
+            clean_text = p.pop("clean_text", "")
             entry_obj["pages"].append(p)
-
             if clean_text:
                 all_chunks.extend(chunk_text_with_provenance(p.get("final_url") or p.get("url"), clean_text))
 
         entry_obj["chunks"] = all_chunks
 
-        # Source index (for future UI)
         entry_obj["prompt_engineering"]["source_index"] = [
             {"label": f"Source {i+1}", "url": u} for i, u in enumerate(entry_obj["links"]["internal_links_selected"])
         ]
 
-        # Full prompt
         entry_obj["prompt_engineering"]["full_prompt"] = build_full_prompt(xxxx, all_chunks)
-       
+
     except Exception as e:
         entry_obj["fetch"]["errors"].append({"stage": "scrape", "url": final_url, "message": str(e)})
 
-    # Setup context on HeyGen
-    try:
-        payload_name = entry_obj["prompt_engineering"]["name"]
-        payload_intro = entry_obj["prompt_engineering"]["opening_intro"]
-        payload_links = entry_obj["links"]["internal_links_selected"]
-        payload_prompt = entry_obj["prompt_engineering"]["full_prompt"]
+    # --- Push to LiveAvatar ONLY if prompt exists ---
+    if entry_obj["prompt_engineering"]["full_prompt"].strip():
+        try:
+            payload_name = entry_obj["prompt_engineering"]["name"]
+            payload_intro = entry_obj["prompt_engineering"]["opening_intro"]
+            payload_links = entry_obj["links"]["internal_links_selected"]
+            payload_prompt = entry_obj["prompt_engineering"]["full_prompt"]
 
-        entry_obj["heygen_liveavatar"]["request_payload"] = {
-            "name": payload_name,
-            "opening_intro": payload_intro,
-            "links": payload_links,
-            "full_prompt": payload_prompt,
-        }
+            entry_obj["heygen_liveavatar"]["request_payload"] = {
+                "name": payload_name,
+                "opening_intro": payload_intro,
+                "links": payload_links,
+                "full_prompt": payload_prompt,
+            }
 
-        resp = create_context(payload_name, payload_intro, payload_links, payload_prompt)
+            resp = create_context(payload_name, payload_intro, payload_links, payload_prompt)
 
-        context_id = resp.get("id") or resp.get("context_id") or resp.get("data", {}).get("id")
-        context_url = resp.get("url") or resp.get("context_url")
-        if not context_url and context_id:
-            context_url = f"https://app.liveavatar.com/contexts/{context_id}"
+            context_id = resp.get("id") or resp.get("context_id") or resp.get("data", {}).get("id")
+            context_url = resp.get("url") or resp.get("context_url")
+            if not context_url and context_id:
+                context_url = f"https://app.liveavatar.com/contexts/{context_id}"
 
-        entry_obj["heygen_liveavatar"]["push_status"] = "pushed"
-        entry_obj["heygen_liveavatar"]["response"] = {
-            "context_id": context_id,
-            "context_url": context_url,
-            "raw": resp,
-        }
-        entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
-        entry_obj["heygen_liveavatar"]["error"] = None
+            entry_obj["heygen_liveavatar"]["push_status"] = "pushed"
+            entry_obj["heygen_liveavatar"]["response"] = {
+                "context_id": context_id,
+                "context_url": context_url,
+                "raw": resp,
+            }
+            entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
+            entry_obj["heygen_liveavatar"]["error"] = None
 
-    except Exception as e:
+        except Exception as e:
+            entry_obj["heygen_liveavatar"]["push_status"] = "failed"
+            entry_obj["heygen_liveavatar"]["response"] = {"context_id": None, "context_url": None, "raw": {}}
+            entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
+            entry_obj["heygen_liveavatar"]["error"] = str(e)
+    else:
         entry_obj["heygen_liveavatar"]["push_status"] = "failed"
+        entry_obj["heygen_liveavatar"]["response"] = {"context_id": None, "context_url": None, "raw": {}}
         entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
-        entry_obj["heygen_liveavatar"]["error"] = str(e)
-#-------------------------------------
-    # Write per-entry JSON to GitHub
+        entry_obj["heygen_liveavatar"]["error"] = "Skipped push: full_prompt is empty (scrape likely failed)."
+
     ctx_write = write_entry_context_json(entry_id, entry_obj)
 
     return render_template(
