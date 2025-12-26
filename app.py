@@ -40,8 +40,10 @@ HEYGEN_ERROR_LOG = os.getenv("HEYGEN_ERROR_LOG", "HeyGen_errors.txt").strip()
 # HEYGEN API KEY (REQUIRED FOR CREATING CONTEXTS)
 # Set this in Render -> Environment Variables:
 #   HEYGEN_API_KEY = <your 60-character HeyGen API key>
+# Error here to be fixed
 # ============================================================
-HEYGEN_API_KEY = os.getenv("HEYGEN_API_KEY", "").strip()
+#HEYGEN_API_KEY = os.getenv("HEYGEN_API_KEY", "").strip()
+HEYGEN_API_KEY = os.getenv("LIVEAVATAR_API_KEY", "").strip()
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PHONE_RE = re.compile(r"^[0-9+\-\s()]{6,20}$")
