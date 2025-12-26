@@ -1,21 +1,51 @@
 import os
 import requests
 
-LIVEAVATAR_BASE_URL = os.getenv("LIVEAVATAR_BASE_URL", "https://app.liveavatar.com").rstrip("/")
-LIVEAVATAR_API_KEY = os.getenv("LIVEAVATAR_API_KEY", "").strip()
 
 class LiveAvatarError(Exception):
     pass
 
-def push_context_to_liveavatar(context: dict) -> dict:
+
+def _normalize_base_url(raw: str) -> str:
     """
-    Push context to LiveAvatar contexts endpoint.
-    Returns LiveAvatar response JSON (should include an id / url).
+    Users often paste https://app.liveavatar.com in env vars (UI host).
+    The API host is typically https://api.liveavatar.com.
+    We'll auto-normalize to reduce configuration mistakes.
+    """
+    base = (raw or "").strip().rstrip("/")
+    if not base:
+        base = "https://api.liveavatar.com"
+
+    # If user provided the app host, switch to api host automatically
+    if "app.liveavatar.com" in base:
+        base = base.replace("app.liveavatar.com", "api.liveavatar.com")
+
+    return base
+
+
+LIVEAVATAR_BASE_URL = _normalize_base_url(os.getenv("LIVEAVATAR_BASE_URL", "https://api.liveavatar.com"))
+LIVEAVATAR_API_KEY = os.getenv("LIVEAVATAR_API_KEY", "").strip()
+
+
+def create_context(name: str, opening_intro: str, links: list[str], full_prompt: str) -> dict:
+    """
+    Create a LiveAvatar/HeyGen context.
+
+    Endpoint:
+      POST {LIVEAVATAR_BASE_URL}/v1/contexts
+
+    Payload:
+      {
+        "name": "...",
+        "opening_intro": "...",
+        "links": [...],
+        "full_prompt": "..."
+      }
     """
     if not LIVEAVATAR_API_KEY:
-        return {"skipped": True, "reason": "LIVEAVATAR_API_KEY not set"}
+        raise LiveAvatarError("LIVEAVATAR_API_KEY is not set")
 
-    url = f"{LIVEAVATAR_BASE_URL}/contexts"
+    url = f"{LIVEAVATAR_BASE_URL}/v1/contexts"
 
     headers = {
         "Authorization": f"Bearer {LIVEAVATAR_API_KEY}",
@@ -24,20 +54,17 @@ def push_context_to_liveavatar(context: dict) -> dict:
     }
 
     payload = {
-        "title": context.get("title", "")[:200],
-        "source_url": context.get("source_url", ""),
-        "chunks": context.get("chunks", []),
-        "created_at": context.get("created_at", ""),
-        "metadata": {
-            "project": "aaa-web",
-            "stage": 3
-        }
+        "name": name,
+        "opening_intro": opening_intro,
+        "links": links or [],
+        "full_prompt": full_prompt,
     }
 
-    r = requests.post(url, headers=headers, json=payload, timeout=30)
+    r = requests.post(url, headers=headers, json=payload, timeout=40)
 
-    # Provide good diagnostics
     if r.status_code >= 400:
-        raise LiveAvatarError(f"LiveAvatar error {r.status_code}: {r.text[:300]}")
+        # return enough text to diagnose, but not too huge
+        msg = (r.text or "").strip()
+        raise LiveAvatarError(f"Create context failed ({r.status_code}): {msg[:800]}")
 
     return r.json()
