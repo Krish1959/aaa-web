@@ -13,6 +13,10 @@ from flask import Flask, render_template, request
 from services.scraper import scrape_site
 from services.text_cleaner import chunk_text_with_provenance
 
+# context setup
+from services.liveavatar import create_context
+
+
 APP_TITLE = "AVATAR AGENTIC AI APPLICATION"
 
 # ---- Config via environment variables (Render -> Environment) ----
@@ -382,10 +386,45 @@ def submit():
 
         # Full prompt
         entry_obj["prompt_engineering"]["full_prompt"] = build_full_prompt(xxxx, all_chunks)
-
+       
     except Exception as e:
         entry_obj["fetch"]["errors"].append({"stage": "scrape", "url": final_url, "message": str(e)})
 
+    # Setup context on HeyGen
+    try:
+        payload_name = entry_obj["prompt_engineering"]["name"]
+        payload_intro = entry_obj["prompt_engineering"]["opening_intro"]
+        payload_links = entry_obj["links"]["internal_links_selected"]
+        payload_prompt = entry_obj["prompt_engineering"]["full_prompt"]
+
+        entry_obj["heygen_liveavatar"]["request_payload"] = {
+            "name": payload_name,
+            "opening_intro": payload_intro,
+            "links": payload_links,
+            "full_prompt": payload_prompt,
+        }
+
+        resp = create_context(payload_name, payload_intro, payload_links, payload_prompt)
+
+        context_id = resp.get("id") or resp.get("context_id") or resp.get("data", {}).get("id")
+        context_url = resp.get("url") or resp.get("context_url")
+        if not context_url and context_id:
+            context_url = f"https://app.liveavatar.com/contexts/{context_id}"
+
+        entry_obj["heygen_liveavatar"]["push_status"] = "pushed"
+        entry_obj["heygen_liveavatar"]["response"] = {
+            "context_id": context_id,
+            "context_url": context_url,
+            "raw": resp,
+        }
+        entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
+        entry_obj["heygen_liveavatar"]["error"] = None
+
+    except Exception as e:
+        entry_obj["heygen_liveavatar"]["push_status"] = "failed"
+        entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
+        entry_obj["heygen_liveavatar"]["error"] = str(e)
+#-------------------------------------
     # Write per-entry JSON to GitHub
     ctx_write = write_entry_context_json(entry_id, entry_obj)
 
