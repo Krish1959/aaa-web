@@ -36,6 +36,13 @@ SQLITE_PATH = os.getenv("SQLITE_PATH", "local_submissions.db")
 # Local log file (Render FS can be ephemeral, but we also push to GitHub)
 HEYGEN_ERROR_LOG = os.getenv("HEYGEN_ERROR_LOG", "HeyGen_errors.txt").strip()
 
+# ============================================================
+# HEYGEN API KEY (REQUIRED FOR CREATING CONTEXTS)
+# Set this in Render -> Environment Variables:
+#   HEYGEN_API_KEY = <your 60-character HeyGen API key>
+# ============================================================
+HEYGEN_API_KEY = os.getenv("HEYGEN_API_KEY", "").strip()
+
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PHONE_RE = re.compile(r"^[0-9+\-\s()]{6,20}$")
 
@@ -454,6 +461,13 @@ def submit():
     # --- Push to LiveAvatar ONLY if prompt exists ---
     if entry_obj["prompt_engineering"]["full_prompt"].strip():
         try:
+            # IMPORTANT: require HeyGen API Key before calling create_context()
+            # (prevents confusing "Not enough segments" token error)
+            if not HEYGEN_API_KEY:
+                raise RuntimeError(
+                    "HEYGEN_API_KEY is not set. Please set HEYGEN_API_KEY (60-char HeyGen API key) in Render env vars."
+                )
+
             payload_name = entry_obj["prompt_engineering"]["name"]
             payload_intro = entry_obj["prompt_engineering"]["opening_intro"]
             payload_links = entry_obj["links"]["internal_links_selected"]
