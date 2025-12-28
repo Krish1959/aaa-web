@@ -1,207 +1,144 @@
+# app.py
+# AAA-Web: Form submission -> GitHub JSONL -> Scrape + clean + chunk -> Build LiveAvatar Context -> Push logs/artifacts back to GitHub
+
+from __future__ import annotations
+
 import base64
-import hashlib
 import json
 import os
 import re
-import sqlite3
+import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from urllib.parse import urlparse, urlunparse
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import requests
 from flask import Flask, render_template, request
 
-from services.scraper import scrape_site
-from services.text_cleaner import chunk_text_with_provenance
+# Your services (kept as-is; assumed present in your repo)
+from services.scraper import scrape_site_map  # type: ignore
+from services.text_cleaner import clean_text, chunk_text_with_provenance  # type: ignore
 
-APP_TITLE = os.getenv("APP_TITLE", "AVATAR AGENTIC AI APPLICATION").strip() or "AVATAR AGENTIC AI APPLICATION"
-
-# GitHub storage
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
-GITHUB_REPO = os.getenv("GITHUB_REPO", "").strip()  # e.g. "Krish1959/aaa-web"
-GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main").strip()
-GITHUB_DB_PATH = os.getenv("GITHUB_DB_PATH", "data/submissions.jsonl").strip()
-GITHUB_CONTEXTS_DIR = os.getenv("GITHUB_CONTEXTS_DIR", "data/contexts/by-entry").strip()
-
-# Error log (local + GitHub)
-GITHUB_HEYGEN_LOG_PATH = os.getenv("GITHUB_HEYGEN_LOG_PATH", "data/HeyGen_errors.txt").strip()
-HEYGEN_ERROR_LOG_LOCAL = os.getenv("HEYGEN_ERROR_LOG_LOCAL", "data/HeyGen_errors.txt").strip()
-
-# LiveAvatar API (CONTEXT API)
-LIVEAVATAR_API_KEY = os.getenv("LIVEAVATAR_API_KEY", "").strip()
-LIVEAVATAR_BASE_URL = os.getenv("LIVEAVATAR_BASE_URL", "https://api.liveavatar.com").strip().rstrip("/")
-
-# Scraping limits
-MAX_PAGES = int(os.getenv("MAX_PAGES", "5"))
-MAX_CHARS_PER_PAGE = int(os.getenv("MAX_CHARS_PER_PAGE", "120000"))
-
-# Prompt length control
-MAX_CONTEXT_WORDS = int(os.getenv("MAX_CONTEXT_WORDS", "600"))
-
-# Local SQLite (optional audit)
-SQLITE_PATH = os.getenv("SQLITE_PATH", "local_submissions.db").strip()
+# --------------------------------------------------------------------------------------
+# Flask
+# --------------------------------------------------------------------------------------
 
 app = Flask(__name__)
+
+# --------------------------------------------------------------------------------------
+# ENV / CONFIG
+# --------------------------------------------------------------------------------------
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
+GITHUB_REPO = os.getenv("GITHUB_REPO", "").strip()          # e.g. "Krish1959/aaa-web"
+GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main").strip()
+GITHUB_DB_PATH = os.getenv("GITHUB_DB_PATH", "data/submissions.jsonl").strip()
+
+# IMPORTANT: LiveAvatar API host (NOT app.liveavatar.com)
+LIVEAVATAR_BASE_URL = os.getenv("LIVEAVATAR_BASE_URL", "https://api.liveavatar.com").strip().rstrip("/")
+LIVEAVATAR_API_KEY = os.getenv("LIVEAVATAR_API_KEY", "").strip()
+
+# Error log file (stored in repo so you can audit every run)
+HEYGEN_ERRORS_PATH = os.getenv("HEYGEN_ERRORS_PATH", "data/HeyGen_errors.txt").strip()
+
+# Scrape tuning (no prompt word-limit enforced)
+SCRAPE_MAX_PAGES = int(os.getenv("SCRAPE_MAX_PAGES", "12").strip() or "12")
+CHUNK_MAX_CHARS = int(os.getenv("CHUNK_MAX_CHARS", "1800").strip() or "1800")
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150").strip() or "150")
+
+# Network timeouts
+HTTP_TIMEOUT = int(os.getenv("HTTP_TIMEOUT", "45").strip() or "45")
+
+# --------------------------------------------------------------------------------------
+# Global run counter
+# --------------------------------------------------------------------------------------
+
+HeyGen_API_error = 0
+
+# --------------------------------------------------------------------------------------
+# Helpers
+# --------------------------------------------------------------------------------------
 
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def ensure_parent_dir(path: str) -> None:
-    parent = os.path.dirname(path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
+def safe_str(x: Any) -> str:
+    return "" if x is None else str(x)
 
 
-def normalize_url(url: str) -> str:
-    url = (url or "").strip()
-    if not url:
-        return ""
-    if not re.match(r"^https?://", url, flags=re.I):
-        url = "https://" + url
-
-    parsed = urlparse(url)
-    parsed = parsed._replace(fragment="")
-
-    # If netloc empty, repair
-    if not parsed.netloc and parsed.path:
-        reparsed = urlparse("https://" + url.lstrip("/"))
-        parsed = reparsed._replace(fragment="")
-
-    return urlunparse(parsed)
+def normalize_spaces(s: str) -> str:
+    return re.sub(r"\s+", " ", s).strip()
 
 
-def derive_xxxx_from_url(url: str) -> str:
+def domain_token(url: str) -> str:
     """
-    Rule:
-    - If host starts with www., xxxx = label immediately after www
-    - Otherwise prefer "registrable-ish" label:
-        * for com.sg/org.sg/gov.sg/edu.sg => label before com/org/gov/edu
-        * else => label before TLD
-
-    NOTE: This fixes the earlier issue where "bescon.com.sg" was returning "com".
+    Domain rule:
+    - 'xxxx' is the word immediately after 'www' (or the first subdomain if no 'www') for naming/paths.
     """
-    url = normalize_url(url)
-    host = (urlparse(url).hostname or "").lower().strip(".")
-    if not host:
-        return "site"
-
-    labels = host.split(".")
-    if labels and labels[0] == "www" and len(labels) >= 2:
-        return labels[1]
-
-    # FIX: allow 3-label ccTLD domains like "bescon.com.sg" (len==3)
-    if len(labels) >= 3 and labels[-1] in {"sg", "uk", "au", "in", "my", "id", "cn", "hk", "tw"} and labels[-2] in {
-        "com", "net", "org", "gov", "edu"
-    }:
-        return labels[-3]
-
-    if len(labels) >= 2:
-        return labels[-2]
-
-    return labels[0]
-
-
-def make_entry_id(record: dict) -> str:
-    raw = json.dumps(
-        {
-            "created_at": record.get("created_at"),
-            "email": record.get("email"),
-            "web_url": record.get("web_url"),
-            "company": record.get("company"),
-        },
-        sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(raw).hexdigest()[:12]
-
-
-def word_count(text: str) -> int:
-    return len(re.findall(r"\b\w+\b", text or ""))
-
-
-def trim_to_words(text: str, max_words: int) -> str:
-    if max_words <= 0:
-        return ""
-    words = re.findall(r"\S+", text or "")
-    if len(words) <= max_words:
-        return (text or "").strip()
-    return " ".join(words[:max_words]).strip() + " ..."
-
-
-def init_sqlite() -> None:
-    ensure_parent_dir(SQLITE_PATH)
-    conn = sqlite3.connect(SQLITE_PATH)
     try:
-        cur = conn.cursor()
-        cur.execute(
-            """
-            CREATE TABLE IF NOT EXISTS submissions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT NOT NULL,
-                name TEXT NOT NULL,
-                company TEXT NOT NULL,
-                email TEXT NOT NULL,
-                phone TEXT,
-                web_url TEXT NOT NULL,
-                stage INTEGER NOT NULL
-            )
-            """
-        )
-        conn.commit()
-    finally:
-        conn.close()
+        host = (urlparse(url).hostname or "").lower()
+        host = host.split(":")[0]
+        if not host:
+            return "unknown"
+
+        parts = [p for p in host.split(".") if p]
+        if not parts:
+            return "unknown"
+
+        if parts[0] == "www" and len(parts) >= 2:
+            return parts[1]
+        return parts[0]
+    except Exception:
+        return "unknown"
 
 
-def sqlite_insert_submission(record: dict) -> None:
-    conn = sqlite3.connect(SQLITE_PATH)
-    try:
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO submissions (created_at, name, company, email, phone, web_url, stage)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                record.get("created_at"),
-                record.get("name"),
-                record.get("company"),
-                record.get("email"),
-                record.get("phone"),
-                record.get("web_url"),
-                int(record.get("stage") or 0),
-            ),
-        )
-        conn.commit()
-    finally:
-        conn.close()
+def require_env(value: str, name: str) -> None:
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
 
 
-def gh_headers() -> dict:
+# --------------------------------------------------------------------------------------
+# GitHub helpers (Contents API)
+# --------------------------------------------------------------------------------------
+
+
+def gh_headers() -> Dict[str, str]:
+    require_env(GITHUB_TOKEN, "GITHUB_TOKEN")
     return {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "aaa-web",
     }
 
 
-def github_get_file(repo: str, path: str, branch: str) -> tuple[str, str | None]:
+def github_get_file(repo: str, path: str, branch: str) -> Tuple[str, Optional[str]]:
+    """
+    Returns (text_content, sha) if exists, else ("", None) if not found.
+    """
     url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    r = requests.get(url, headers=gh_headers(), params={"ref": branch}, timeout=30)
+    r = requests.get(url, headers=gh_headers(), params={"ref": branch}, timeout=HTTP_TIMEOUT)
     if r.status_code == 404:
         return "", None
     r.raise_for_status()
     data = r.json()
-    content_b64 = data.get("content", "")
+    content_b64 = data.get("content", "") or ""
     sha = data.get("sha")
-    if not content_b64:
-        return "", sha
-    text = base64.b64decode(content_b64).decode("utf-8", errors="replace")
+    try:
+        text = base64.b64decode(content_b64).decode("utf-8", errors="replace")
+    except Exception:
+        text = ""
     return text, sha
 
 
-def github_put_file(repo: str, path: str, branch: str, new_text: str, sha: str | None) -> dict:
+def github_put_file(repo: str, path: str, branch: str, new_text: str, sha: str | None) -> Dict[str, Any]:
+    """
+    Create or update a file in GitHub via Contents API.
+    """
     url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    payload = {
+    payload: Dict[str, Any] = {
         "message": f"Update {path}",
         "content": base64.b64encode(new_text.encode("utf-8")).decode("utf-8"),
         "branch": branch,
@@ -209,351 +146,442 @@ def github_put_file(repo: str, path: str, branch: str, new_text: str, sha: str |
     if sha:
         payload["sha"] = sha
 
-    # CHANGE (minimal): use json=payload for consistency; functionality unchanged
-    r = requests.put(url, headers=gh_headers(), json=payload, timeout=30)
+    r = requests.put(url, headers=gh_headers(), data=json.dumps(payload), timeout=HTTP_TIMEOUT)
     r.raise_for_status()
     return r.json()
 
 
-def append_record_to_github_jsonl(record: dict) -> dict:
-    if not (GITHUB_TOKEN and GITHUB_REPO):
-        return {"ok": False, "error": "Missing GITHUB_TOKEN or GITHUB_REPO env vars."}
-
-    existing_text, sha = github_get_file(GITHUB_REPO, GITHUB_DB_PATH, GITHUB_BRANCH)
-    new_line = json.dumps(record, ensure_ascii=False)
-    new_text = (existing_text.rstrip("\n") + "\n" + new_line + "\n").lstrip("\n")
-
-    result = github_put_file(GITHUB_REPO, GITHUB_DB_PATH, GITHUB_BRANCH, new_text, sha)
-    commit_sha = (result.get("commit") or {}).get("sha")
-    return {"ok": True, "commit": commit_sha, "path": GITHUB_DB_PATH}
-
-
-def write_entry_context_json(entry_id: str, entry_obj: dict) -> dict:
-    rel_path = f"{GITHUB_CONTEXTS_DIR.rstrip('/')}/{entry_id}.json"
-    local_path = os.path.join("data", "contexts", "by-entry", f"{entry_id}.json")
-
-    ensure_parent_dir(local_path)
-    with open(local_path, "w", encoding="utf-8") as f:
-        json.dump(entry_obj, f, indent=2, ensure_ascii=False)
-
-    if not (GITHUB_TOKEN and GITHUB_REPO):
-        return {"ok": False, "error": "Missing GITHUB_TOKEN or GITHUB_REPO.", "path": rel_path}
-
-    _, sha = github_get_file(GITHUB_REPO, rel_path, GITHUB_BRANCH)
-    result = github_put_file(
-        GITHUB_REPO,
-        rel_path,
-        GITHUB_BRANCH,
-        json.dumps(entry_obj, indent=2, ensure_ascii=False) + "\n",
-        sha,
-    )
-    commit_sha = (result.get("commit") or {}).get("sha")
-    return {"ok": True, "commit": commit_sha, "path": rel_path}
-
-
-def append_line_to_github_text(line: str, path: str) -> dict:
-    if not (GITHUB_TOKEN and GITHUB_REPO):
-        return {"ok": False, "error": "Missing GITHUB_TOKEN or GITHUB_REPO."}
-
-    existing_text, sha = github_get_file(GITHUB_REPO, path, GITHUB_BRANCH)
-    new_text = (existing_text.rstrip("\n") + "\n" + line + "\n").lstrip("\n")
-
-    result = github_put_file(GITHUB_REPO, path, GITHUB_BRANCH, new_text, sha)
-    commit_sha = (result.get("commit") or {}).get("sha")
-    return {"ok": True, "commit": commit_sha, "path": path}
-
-
-def log_heygen_line(line: str) -> dict:
-    ensure_parent_dir(HEYGEN_ERROR_LOG_LOCAL)
-    try:
-        with open(HEYGEN_ERROR_LOG_LOCAL, "a", encoding="utf-8") as f:
-            f.write(line + "\n")
-    except Exception:
-        pass
-    return append_line_to_github_text(line, GITHUB_HEYGEN_LOG_PATH)
-
-
-def build_full_prompt(xxxx: str, chunks: list[dict], max_words: int) -> tuple[str, dict]:
-    base = f"""
-You are a passionate teacher acting as a mediator for learners.
-
-Scope & safety:
-Keep the conversation focused exclusively on {xxxx} and related information only.
-Bounce all other topics with this fixed sentence:
-"Let us focus only on {xxxx} only"
-Categorically deny answering any topic outside the scope defined here.
-
-Style & tone:
-Use short replies: 1–3 concise sentences or a short paragraph.
-Be clear, friendly, and encouraging.
-
-CONTENT (scraped):
----------------------------------
-""".strip()
-
-    base_wc = word_count(base)
-    budget_for_content = max(max_words - base_wc - 5, 0)
-
-    selected = []
-    used_words = 0
-    dropped = 0
-
-    for c in chunks:
-        txt = (c.get("text") or "").strip()
-        if not txt:
-            continue
-
-        prefix = f"[{c.get('page_url','')}] " if c.get("page_url") else ""
-        blob = (prefix + txt).strip()
-        wc = word_count(blob)
-
-        if used_words + wc <= budget_for_content:
-            selected.append(blob)
-            used_words += wc
-        else:
-            if not selected and budget_for_content > 0:
-                selected.append(trim_to_words(blob, budget_for_content))
-                used_words = budget_for_content
-            dropped += 1
-            break
-
-    content = "\n\n".join(selected).strip()
-    prompt = f"{base}\n{content}".strip()
-
-    final_wc = word_count(prompt)
-    truncated = dropped > 0 or final_wc > max_words
-
-    if final_wc > max_words:
-        prompt = trim_to_words(prompt, max_words)
-        final_wc = word_count(prompt)
-        truncated = True
-
-    meta = {
-        "max_words": max_words,
-        "base_words": base_wc,
-        "content_words": used_words,
-        "final_words": final_wc,
-        "truncated": truncated,
-        "chunks_included": len(selected),
-        "chunks_total": len(chunks),
-    }
-    return prompt, meta
-
-
-def create_liveavatar_context(payload: dict) -> tuple[bool, dict, str | None]:
+def github_append_line(repo: str, path: str, branch: str, line: str) -> Dict[str, Any]:
     """
-    POST {LIVEAVATAR_BASE_URL}/v1/contexts
-    Auth header: X-Api-Key: <LIVEAVATAR_API_KEY>
-
-    NOTE:
-    - LiveAvatar requires: name, opening_text, prompt
-    - links (if included) must be a list of objects, not a list of strings
+    Append a single line to a text file in GitHub (creates if missing).
     """
-    if not LIVEAVATAR_API_KEY:
-        return False, {"message": "Missing LIVEAVATAR_API_KEY environment variable."}, "missing_api_key"
+    existing, sha = github_get_file(repo, path, branch)
+    if existing and not existing.endswith("\n"):
+        existing += "\n"
+    new_text = existing + line + "\n"
+    return github_put_file(repo, path, branch, new_text, sha)
 
-    url = f"{LIVEAVATAR_BASE_URL}/v1/contexts"
-    headers = {
-        "X-Api-Key": LIVEAVATAR_API_KEY,
+
+# --------------------------------------------------------------------------------------
+# HeyGen/LiveAvatar error log helpers
+# --------------------------------------------------------------------------------------
+
+
+def log_heygen_line(xxxx: str, code: str, note: Optional[str] = None, error_obj: Optional[dict] = None) -> None:
+    """
+    Writes a single line to data/HeyGen_errors.txt and pushes to GitHub immediately.
+    """
+    global HeyGen_API_error
+
+    ts = utc_now_iso()
+    if error_obj is not None:
+        HeyGen_API_error += 1
+        line = f"{ts} | xxxx={xxxx} | code={code} | error={error_obj}"
+    else:
+        line = f"{ts} | xxxx={xxxx} | code={code} | note={note or ''}".rstrip()
+
+    # Always push log line to GitHub
+    if GITHUB_REPO and GITHUB_TOKEN:
+        github_append_line(GITHUB_REPO, HEYGEN_ERRORS_PATH, GITHUB_BRANCH, line)
+
+
+def finalize_run_log(xxxx: str, ok: bool) -> None:
+    """
+    Always record end-of-run summary and push.
+    """
+    global HeyGen_API_error
+    ts = utc_now_iso()
+
+    if ok and HeyGen_API_error == 0:
+        line = f"{ts} | xxxx={xxxx} | No error"
+        if GITHUB_REPO and GITHUB_TOKEN:
+            github_append_line(GITHUB_REPO, HEYGEN_ERRORS_PATH, GITHUB_BRANCH, line)
+    else:
+        line = f"{ts} | xxxx={xxxx} | Total errors this run = {HeyGen_API_error}"
+        if GITHUB_REPO and GITHUB_TOKEN:
+            github_append_line(GITHUB_REPO, HEYGEN_ERRORS_PATH, GITHUB_BRANCH, line)
+
+
+# --------------------------------------------------------------------------------------
+# LiveAvatar API
+# --------------------------------------------------------------------------------------
+
+
+def liveavatar_headers() -> Dict[str, str]:
+    require_env(LIVEAVATAR_API_KEY, "LIVEAVATAR_API_KEY")
+    return {
         "accept": "application/json",
         "content-type": "application/json",
+        # Header spelling that you proved works in PowerShell curl tests
+        "X-Api-Key": LIVEAVATAR_API_KEY,
     }
 
-    try:
-        r = requests.post(url, headers=headers, json=payload, timeout=45)
-    except requests.RequestException as e:
-        return False, {"message": f"Request error: {e}"}, "request_exception"
 
-    if r.status_code >= 400:
-        try:
-            err = r.json()
-        except Exception:
-            err = {"message": r.text}
-        return False, {"status_code": r.status_code, "error": err}, f"http_{r.status_code}"
-
-    try:
-        data = r.json()
-    except Exception:
-        data = {"raw": r.text}
-
-    return True, data, None
-
-
-init_sqlite()
+def liveavatar_create_context(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    POST /v1/contexts
+    Required fields (per docs / your working curl tests):
+      - name
+      - prompt
+      - opening_text
+    Optional:
+      - interactive_style
+      - links (array of objects with required url+faq, optional id but if provided must be valid UUID)
+    """
+    url = f"{LIVEAVATAR_BASE_URL}/v1/contexts"
+    r = requests.post(url, headers=liveavatar_headers(), json=payload, timeout=HTTP_TIMEOUT)
+    if not r.ok:
+        raise requests.HTTPError(f"LiveAvatar HTTP {r.status_code}: {r.text}", response=r)
+    return r.json()
 
 
-@app.route("/", methods=["GET"])
+# --------------------------------------------------------------------------------------
+# Prompt + Links builders (NO word limit enforced)
+# --------------------------------------------------------------------------------------
+
+@dataclass
+class Chunk:
+    chunk_id: str
+    url: str
+    text: str
+
+
+def build_chunks(scrape_result: Dict[str, Any]) -> List[Chunk]:
+    """
+    Build chunks from every scraped page (no artificial cap here).
+    Assumes scrape_result["pages"] is a list of dicts with at least: url, raw_text (or text).
+    """
+    pages = scrape_result.get("pages") or []
+    all_chunks: List[Chunk] = []
+    i = 0
+
+    for page in pages:
+        page_url = safe_str(page.get("url") or page.get("page_url") or "")
+        raw = safe_str(page.get("raw_text") or page.get("text") or page.get("content") or "")
+        if not page_url or not raw:
+            continue
+
+        cleaned = clean_text(raw)
+        if not cleaned:
+            continue
+
+        # chunk_text_with_provenance in your repo may return list[str] (as earlier),
+        # or list[dict]. We'll support both safely.
+        pieces = chunk_text_with_provenance(
+            cleaned,
+            max_chars=CHUNK_MAX_CHARS,
+            overlap=CHUNK_OVERLAP,
+        )
+
+        if isinstance(pieces, list):
+            for p in pieces:
+                if isinstance(p, dict):
+                    chunk_text = safe_str(p.get("text") or "")
+                else:
+                    chunk_text = safe_str(p)
+
+                chunk_text = chunk_text.strip()
+                if not chunk_text:
+                    continue
+
+                chunk_id = f"{i:03d}"
+                all_chunks.append(Chunk(chunk_id=chunk_id, url=page_url, text=chunk_text))
+                i += 1
+
+    return all_chunks
+
+
+def build_prompt(persona_text: str, company: str, base_url: str, chunks: List[Chunk]) -> str:
+    """
+    Builds one big prompt containing all chunks (no truncation).
+    """
+    lines: List[str] = []
+
+    lines.append("## PERSONA / ROLE")
+    lines.append(persona_text.strip())
+    lines.append("")
+
+    lines.append("## COMPANY")
+    if company:
+        lines.append(f"Company: {company}")
+    if base_url:
+        lines.append(f"Website: {base_url}")
+    lines.append("")
+
+    lines.append("## SOURCE MATERIAL (SCRAPED)")
+    lines.append("Use the following scraped material as the knowledge base. Cite the source URL when helpful.")
+    lines.append("")
+
+    if not chunks:
+        lines.append("(No scraped content was available.)")
+        return "\n".join(lines).strip()
+
+    # Group by page URL for readability
+    by_url: Dict[str, List[Chunk]] = {}
+    for c in chunks:
+        by_url.setdefault(c.url, []).append(c)
+
+    for page_url, page_chunks in by_url.items():
+        lines.append(f"### {page_url}")
+        for c in page_chunks:
+            lines.append(f"[{c.chunk_id}] {c.text}")
+            lines.append("")
+        lines.append("")
+
+    return "\n".join(lines).strip()
+
+
+def build_links_from_chunks(chunks: List[Chunk]) -> List[Dict[str, Any]]:
+    """
+    LiveAvatar 'links' must be: array of objects, each with required url + faq, and id if included must be UUID.
+
+    We'll create one link object per URL:
+      {
+        "url": "<page_url>",
+        "id": "<uuid4>",
+        "faq": "Scraped content included in prompt. Chunk IDs: 000,001,..."
+      }
+    """
+    by_url: Dict[str, List[str]] = {}
+    for c in chunks:
+        by_url.setdefault(c.url, []).append(c.chunk_id)
+
+    link_objs: List[Dict[str, Any]] = []
+    for page_url, ids in by_url.items():
+        ids_sorted = sorted(ids)
+        # Keep faq human-readable (not too long)
+        if len(ids_sorted) <= 12:
+            chunk_part = ", ".join(ids_sorted)
+        else:
+            chunk_part = ", ".join(ids_sorted[:6]) + " ... " + ", ".join(ids_sorted[-3:])
+
+        link_objs.append({
+            "url": page_url,
+            "id": str(uuid.uuid4()),  # MUST be valid UUID if present
+            "faq": f"Scraped content included in prompt. Chunk IDs: {chunk_part}",
+        })
+
+    return link_objs
+
+
+# --------------------------------------------------------------------------------------
+# Core submit pipeline
+# --------------------------------------------------------------------------------------
+
+
+def append_submission_jsonl(record: Dict[str, Any]) -> None:
+    """
+    Append record to GitHub JSONL file.
+    """
+    require_env(GITHUB_REPO, "GITHUB_REPO")
+    line = json.dumps(record, ensure_ascii=False)
+    existing, sha = github_get_file(GITHUB_REPO, GITHUB_DB_PATH, GITHUB_BRANCH)
+    if existing and not existing.endswith("\n"):
+        existing += "\n"
+    new_text = existing + line + "\n"
+    github_put_file(GITHUB_REPO, GITHUB_DB_PATH, GITHUB_BRANCH, new_text, sha)
+
+
+def save_entry_artifacts(entry_id: str, xxxx: str, entry_obj: Dict[str, Any]) -> None:
+    """
+    Save detailed per-entry JSON plus a "latest by domain token" JSON.
+    """
+    require_env(GITHUB_REPO, "GITHUB_REPO")
+
+    per_entry_path = f"data/contexts/by-entry/{entry_id}.json"
+    latest_path = f"data/contexts/{xxxx}.json"
+
+    per_entry_text = json.dumps(entry_obj, indent=2, ensure_ascii=False)
+    latest_text = json.dumps(entry_obj, indent=2, ensure_ascii=False)
+
+    # Put per-entry
+    existing, sha = github_get_file(GITHUB_REPO, per_entry_path, GITHUB_BRANCH)
+    github_put_file(GITHUB_REPO, per_entry_path, GITHUB_BRANCH, per_entry_text, sha)
+
+    # Put latest
+    existing2, sha2 = github_get_file(GITHUB_REPO, latest_path, GITHUB_BRANCH)
+    github_put_file(GITHUB_REPO, latest_path, GITHUB_BRANCH, latest_text, sha2)
+
+
+# --------------------------------------------------------------------------------------
+# Routes
+# --------------------------------------------------------------------------------------
+
+
+@app.get("/")
 def index():
-    return render_template("index.html", title=APP_TITLE)
+    return render_template("index.html")
 
 
-@app.route("/submit", methods=["POST"])
+@app.post("/submit")
 def submit():
-    HeyGen_API_error = 0
+    global HeyGen_API_error
+    HeyGen_API_error = 0  # reset per run
+
     created_at = utc_now_iso()
 
-    name = (request.form.get("name") or "").strip()
-    company = (request.form.get("company") or "").strip()
-    email = (request.form.get("email") or "").strip()
-    phone = (request.form.get("phone") or "").strip()
-    web_url = (request.form.get("web_url") or "").strip()
+    name = normalize_spaces(request.form.get("name", ""))
+    company = normalize_spaces(request.form.get("company", ""))
+    email = normalize_spaces(request.form.get("email", ""))
+    phone = normalize_spaces(request.form.get("phone", ""))
+    web_url = normalize_spaces(request.form.get("web_url", ""))
 
-    errors = []
-    if not name:
-        errors.append("Name is required.")
-    if not company:
-        errors.append("Company is required.")
-    if not email:
-        errors.append("Email is required.")
-    if not web_url:
-        errors.append("Web URL is required.")
+    xxxx = domain_token(web_url)
 
-    if errors:
-        return render_template("index.html", title=APP_TITLE, errors=errors, form=request.form)
+    # Basic validation
+    if not company or not web_url:
+        log_heygen_line(xxxx, "input_error", note="Missing required company or web_url")
+        finalize_run_log(xxxx, ok=False)
+        return render_template("success.html", record={"error": "Missing company or web_url"}, context_result=None)
 
+    # Entry ID for traceability
+    entry_id = uuid.uuid4().hex[:12]
+
+    # -----------------------------
+    # Stage 1: Store submission
+    # -----------------------------
     record = {
         "created_at": created_at,
+        "entry_id": entry_id,
         "name": name,
         "company": company,
         "email": email,
         "phone": phone,
-        "web_url": normalize_url(web_url),
-        "stage": 2,
+        "web_url": web_url,
+        "stage": 1,
     }
 
     try:
-        sqlite_insert_submission(record)
-    except Exception:
-        pass
-
-    gh = append_record_to_github_jsonl(record)
-
-    xxxx = derive_xxxx_from_url(record["web_url"])
-    entry_id = make_entry_id(record)
-
-    entry_obj = {
-        "schema_version": "1.0",
-        "entry_id": entry_id,
-        "identity": {"xxxx": xxxx, "input_url": record["web_url"], "final_url": None, "final_host": None},
-        "fetch": {"fetched_at_utc": created_at, "http_status": None, "redirect_chain": [], "errors": []},
-        "crawl_policy": {
-            "scope_rule": "same_domain_only",
-            "max_pages": MAX_PAGES,
-            "max_chars_per_page": MAX_CHARS_PER_PAGE,
-            "max_context_words": MAX_CONTEXT_WORDS,
-        },
-        "links": {"internal_links_discovered": [], "internal_links_selected": []},
-        "pages": [],
-        "chunks": [],
-        "prompt_engineering": {"source_index": [], "word_budget": MAX_CONTEXT_WORDS, "prompt_word_stats": {}},
-        "heygen_liveavatar": {
-            "push_status": "not_started",
-            "request_payload": {},
-            "response": {"context_id": None, "context_url": None, "raw": {}},
-            "pushed_at_utc": None,
-            "error": None,
-        },
-        "submission": record,
-    }
-
-    try:
-        scrape_result = scrape_site(record["web_url"], max_pages=MAX_PAGES, max_chars_per_page=MAX_CHARS_PER_PAGE)
-
-        final_url = scrape_result.get("final_url") or record["web_url"]
-        entry_obj["identity"]["final_url"] = final_url
-        entry_obj["identity"]["final_host"] = (urlparse(final_url).hostname or "")
-
-        entry_obj["fetch"]["http_status"] = scrape_result.get("http_status")
-        entry_obj["fetch"]["redirect_chain"] = scrape_result.get("redirect_chain", [])
-        entry_obj["fetch"]["errors"] = scrape_result.get("errors", [])
-
-        links = [x["url"] for x in scrape_result.get("links", [])]
-        entry_obj["links"]["internal_links_discovered"] = links
-        entry_obj["links"]["internal_links_selected"] = links[:10]
-
-        all_chunks = []
-        for p in scrape_result.get("pages", []):
-            clean_text = p.pop("clean_text", "")
-            entry_obj["pages"].append(p)
-            if clean_text:
-                all_chunks.extend(chunk_text_with_provenance(p.get("final_url") or p.get("url"), clean_text))
-
-        entry_obj["chunks"] = all_chunks
-        entry_obj["prompt_engineering"]["source_index"] = [
-            {"label": f"Source {i+1}", "url": u} for i, u in enumerate(entry_obj["links"]["internal_links_selected"])
-        ]
-
-        full_prompt, prompt_meta = build_full_prompt(xxxx, all_chunks, MAX_CONTEXT_WORDS)
-        entry_obj["prompt_engineering"]["full_prompt"] = full_prompt
-        entry_obj["prompt_engineering"]["prompt_word_stats"] = prompt_meta
-
-        if prompt_meta.get("truncated"):
-            log_heygen_line(
-                f"{created_at} | xxxx={xxxx} | code=text_truncated | note=text truncated to {MAX_CONTEXT_WORDS} words"
-            )
-
+        append_submission_jsonl(record)
     except Exception as e:
-        HeyGen_API_error += 1
-        entry_obj["fetch"]["errors"].append(str(e))
-        log_heygen_line(f"{created_at} | xxxx={xxxx} | code=scrape_failed | error={e}")
+        log_heygen_line(xxxx, "github_write_failed", error_obj={"error": str(e)})
+        finalize_run_log(xxxx, ok=False)
+        return render_template("success.html", record=record, context_result=None)
 
-    # ============================================================
-    # LIVEAVATAR CREATE CONTEXT PAYLOAD (aligned to your working curl):
-    # Required fields: name, opening_text, prompt
-    # Optional: links (must be list of dict objects), interactive_style
-    # ============================================================
-    payload_name = company.strip() or xxxx.upper()
-    payload_opening_text = f"Welcome to the Q & A session on {xxxx.upper()}"
-    payload_prompt = (entry_obj.get("prompt_engineering", {}) or {}).get("full_prompt") or ""
+    # -----------------------------
+    # Stage 2: Scrape + clean + chunk
+    # -----------------------------
+    entry_obj: Dict[str, Any] = {
+        "created_at": created_at,
+        "entry_id": entry_id,
+        "form": record,
+        "links": {},
+        "scrape": {},
+        "chunks": [],
+        "heygen_liveavatar": {},
+    }
 
-    # FIX: links must be objects, not strings
-    payload_links = [{"url": u} for u in entry_obj["links"]["internal_links_selected"]]
+    try:
+        scrape_result = scrape_site_map(web_url, max_pages=SCRAPE_MAX_PAGES)  # keep your service behavior
+        entry_obj["scrape"] = scrape_result
+    except Exception as e:
+        log_heygen_line(xxxx, "scrape_failed", error_obj={"error": str(e), "web_url": web_url})
+        finalize_run_log(xxxx, ok=False)
+        try:
+            save_entry_artifacts(entry_id, xxxx, entry_obj)
+        except Exception:
+            pass
+        return render_template("success.html", record=record, context_result=None)
 
-    entry_obj["heygen_liveavatar"]["request_payload"] = {
+    try:
+        chunks = build_chunks(entry_obj["scrape"])
+        entry_obj["chunks"] = [
+            {"chunk_id": c.chunk_id, "url": c.url, "text": c.text} for c in chunks
+        ]
+    except Exception as e:
+        log_heygen_line(xxxx, "chunk_failed", error_obj={"error": str(e)})
+        finalize_run_log(xxxx, ok=False)
+        try:
+            save_entry_artifacts(entry_id, xxxx, entry_obj)
+        except Exception:
+            pass
+        return render_template("success.html", record=record, context_result=None)
+
+    # -----------------------------
+    # Stage 3: Build Context payload (NO word limit; include all internal URLs + scraped texts)
+    # -----------------------------
+
+    persona_text = (
+        "You are a passionate teacher acting as a mediator for learners.\n"
+        "Scope & safety:\n"
+        "Keep the conversation focused exclusively on bescon and related information only.\n"
+        "If asked about any other topic, reply with exactly:\n"
+        "\"Let us focus only on bescon only\"\n"
+        "Style & tone:\n"
+        "Use short replies: 1–3 concise sentences or a short paragraph.\n"
+        "Be clear, friendly, and encouraging."
+    )
+
+    payload_name = f"{company}".strip() or f"{xxxx}".strip()
+    payload_opening_text = f"Welcome to the Q & A session on {company}".strip()
+
+    payload_prompt = build_prompt(
+        persona_text=persona_text,
+        company=company,
+        base_url=web_url,
+        chunks=[Chunk(**c) if isinstance(c, dict) else c for c in entry_obj["chunks"]]  # type: ignore
+    )
+
+    # Build correct link objects (url + faq required; id must be UUID if present)
+    payload_links = build_links_from_chunks([Chunk(**c) for c in entry_obj["chunks"]])  # type: ignore
+
+    # IMPORTANT: Use the exact API keys (NO undefined fields)
+    request_payload: Dict[str, Any] = {
         "name": payload_name,
         "opening_text": payload_opening_text,
         "prompt": payload_prompt,
         "interactive_style": "conversational",
-        #"links": payload_links,
     }
+    if payload_links:
+        request_payload["links"] = payload_links
 
-    if payload_prompt.strip():
-        ok, resp, err_code = create_liveavatar_context(entry_obj["heygen_liveavatar"]["request_payload"])
-        entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
+    entry_obj["heygen_liveavatar"]["request_payload"] = request_payload
 
-        if ok:
-            entry_obj["heygen_liveavatar"]["push_status"] = "success"
-            context_id = (
-                (resp.get("data") or {}).get("id")
-                or resp.get("id")
-                or (resp.get("data") or {}).get("context_id")
-                or resp.get("context_id")
-            )
-            context_url = f"https://app.liveavatar.com/contexts/{context_id}" if context_id else None
-            entry_obj["heygen_liveavatar"]["response"] = {"context_id": context_id, "context_url": context_url, "raw": resp}
-        else:
-            HeyGen_API_error += 1
-            entry_obj["heygen_liveavatar"]["push_status"] = "failed"
-            entry_obj["heygen_liveavatar"]["response"] = {"context_id": None, "context_url": None, "raw": resp}
-            entry_obj["heygen_liveavatar"]["error"] = f"{resp}"
-            log_heygen_line(f"{created_at} | xxxx={xxxx} | code={err_code} | error={resp}")
-    else:
-        HeyGen_API_error += 1
-        entry_obj["heygen_liveavatar"]["push_status"] = "failed"
-        entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
-        entry_obj["heygen_liveavatar"]["error"] = "Skipped push: prompt is empty (scrape likely failed)."
-        log_heygen_line(f"{created_at} | xxxx={xxxx} | code=empty_prompt | error=Skipped push: empty prompt")
+    # -----------------------------
+    # Stage 4: Create context via LiveAvatar API
+    # -----------------------------
+    context_result: Optional[Dict[str, Any]] = None
+    ok = False
 
-    ctx_write = write_entry_context_json(entry_id, entry_obj)
+    try:
+        require_env(LIVEAVATAR_API_KEY, "LIVEAVATAR_API_KEY")
+        result = liveavatar_create_context(request_payload)
+        entry_obj["heygen_liveavatar"]["response"] = result
+        context_result = result
+        ok = True
+    except requests.HTTPError as e:
+        resp = getattr(e, "response", None)
+        status = getattr(resp, "status_code", None)
+        text = getattr(resp, "text", "")
+        err_obj = {
+            "status_code": status,
+            "error": safe_str(text)[:2000],  # keep log bounded
+        }
+        log_heygen_line(xxxx, "http_error", error_obj=err_obj)
+        entry_obj["heygen_liveavatar"]["error"] = err_obj
+    except Exception as e:
+        err_obj = {"error": str(e)}
+        log_heygen_line(xxxx, "unexpected_error", error_obj=err_obj)
+        entry_obj["heygen_liveavatar"]["error"] = err_obj
 
-    if HeyGen_API_error == 0:
-        log_heygen_line(f"{created_at} | xxxx={xxxx} | No error")
-    else:
-        log_heygen_line(f"{created_at} | xxxx={xxxx} | Total errors this run = {HeyGen_API_error}")
+    # -----------------------------
+    # Stage 5: Save artifacts + finalize logs
+    # -----------------------------
+    try:
+        save_entry_artifacts(entry_id, xxxx, entry_obj)
+    except Exception as e:
+        log_heygen_line(xxxx, "github_artifact_save_failed", error_obj={"error": str(e)})
 
-    return render_template("success.html", title=APP_TITLE, record=record, gh=gh, ctx=ctx_write, entry=entry_obj)
+    finalize_run_log(xxxx, ok=ok)
 
+    return render_template("success.html", record=record, context_result=context_result)
+
+
+# --------------------------------------------------------------------------------------
+# Main
+# --------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.0", port=port)
+    # Local dev: python app.py
+    # Render/Gunicorn: uses "gunicorn app:app"
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "10000")), debug=False)
