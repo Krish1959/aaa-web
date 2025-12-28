@@ -26,8 +26,7 @@ GITHUB_CONTEXTS_DIR = os.getenv("GITHUB_CONTEXTS_DIR", "data/contexts/by-entry")
 GITHUB_HEYGEN_LOG_PATH = os.getenv("GITHUB_HEYGEN_LOG_PATH", "data/HeyGen_errors.txt").strip()
 HEYGEN_ERROR_LOG_LOCAL = os.getenv("HEYGEN_ERROR_LOG_LOCAL", "data/HeyGen_errors.txt").strip()
 
-# LiveAvatar API
-# >>> IMPORTANT: THIS IS THE KEY NAME TO SET ON RENDER <<<
+# LiveAvatar API (CONTEXT API)
 LIVEAVATAR_API_KEY = os.getenv("LIVEAVATAR_API_KEY", "").strip()
 LIVEAVATAR_BASE_URL = os.getenv("LIVEAVATAR_BASE_URL", "https://api.liveavatar.com").strip().rstrip("/")
 
@@ -79,6 +78,8 @@ def derive_xxxx_from_url(url: str) -> str:
     - Otherwise prefer "registrable-ish" label:
         * for com.sg/org.sg/gov.sg/edu.sg => label before com/org/gov/edu
         * else => label before TLD
+
+    NOTE: This fixes the earlier issue where "bescon.com.sg" was returning "com".
     """
     url = normalize_url(url)
     host = (urlparse(url).hostname or "").lower().strip(".")
@@ -89,7 +90,8 @@ def derive_xxxx_from_url(url: str) -> str:
     if labels and labels[0] == "www" and len(labels) >= 2:
         return labels[1]
 
-    if len(labels) >= 4 and labels[-1] in {"sg", "uk", "au", "in", "my", "id", "cn", "hk", "tw"} and labels[-2] in {
+    # FIX: allow 3-label ccTLD domains like "bescon.com.sg" (len==3)
+    if len(labels) >= 3 and labels[-1] in {"sg", "uk", "au", "in", "my", "id", "cn", "hk", "tw"} and labels[-2] in {
         "com", "net", "org", "gov", "edu"
     }:
         return labels[-3]
@@ -207,7 +209,8 @@ def github_put_file(repo: str, path: str, branch: str, new_text: str, sha: str |
     if sha:
         payload["sha"] = sha
 
-    r = requests.put(url, headers=gh_headers(), data=json.dumps(payload), timeout=30)
+    # CHANGE (minimal): use json=payload for consistency; functionality unchanged
+    r = requests.put(url, headers=gh_headers(), json=payload, timeout=30)
     r.raise_for_status()
     return r.json()
 
@@ -339,15 +342,19 @@ CONTENT (scraped):
 
 def create_liveavatar_context(payload: dict) -> tuple[bool, dict, str | None]:
     """
-    POST https://api.liveavatar.com/v1/contexts
-    Auth: X-API-KEY: <LIVEAVATAR_API_KEY>
+    POST {LIVEAVATAR_BASE_URL}/v1/contexts
+    Auth header: X-Api-Key: <LIVEAVATAR_API_KEY>
+
+    NOTE:
+    - LiveAvatar requires: name, opening_text, prompt
+    - links (if included) must be a list of objects, not a list of strings
     """
     if not LIVEAVATAR_API_KEY:
         return False, {"message": "Missing LIVEAVATAR_API_KEY environment variable."}, "missing_api_key"
 
     url = f"{LIVEAVATAR_BASE_URL}/v1/contexts"
     headers = {
-        "X-API-KEY": LIVEAVATAR_API_KEY,
+        "X-Api-Key": LIVEAVATAR_API_KEY,
         "accept": "application/json",
         "content-type": "application/json",
     }
@@ -490,16 +497,24 @@ def submit():
         entry_obj["fetch"]["errors"].append(str(e))
         log_heygen_line(f"{created_at} | xxxx={xxxx} | code=scrape_failed | error={e}")
 
-    payload_name = company
-    payload_intro = f"Let us talk about {xxxx}"
-    payload_links = entry_obj["links"]["internal_links_selected"]
+    # ============================================================
+    # LIVEAVATAR CREATE CONTEXT PAYLOAD (aligned to your working curl):
+    # Required fields: name, opening_text, prompt
+    # Optional: links (must be list of dict objects), interactive_style
+    # ============================================================
+    payload_name = company.strip() or xxxx.upper()
+    payload_opening_text = f"Welcome to the Q & A session on {xxxx.upper()}"
     payload_prompt = (entry_obj.get("prompt_engineering", {}) or {}).get("full_prompt") or ""
+
+    # FIX: links must be objects, not strings
+    payload_links = [{"url": u} for u in entry_obj["links"]["internal_links_selected"]]
 
     entry_obj["heygen_liveavatar"]["request_payload"] = {
         "name": payload_name,
-        "opening_intro": payload_intro,
+        "opening_text": payload_opening_text,
+        "prompt": payload_prompt,
+        "interactive_style": "conversational",
         "links": payload_links,
-        "full_prompt": payload_prompt,
     }
 
     if payload_prompt.strip():
@@ -509,10 +524,10 @@ def submit():
         if ok:
             entry_obj["heygen_liveavatar"]["push_status"] = "success"
             context_id = (
-                resp.get("context_id")
+                (resp.get("data") or {}).get("id")
                 or resp.get("id")
-                or resp.get("data", {}).get("context_id")
-                or resp.get("data", {}).get("id")
+                or (resp.get("data") or {}).get("context_id")
+                or resp.get("context_id")
             )
             context_url = f"https://app.liveavatar.com/contexts/{context_id}" if context_id else None
             entry_obj["heygen_liveavatar"]["response"] = {"context_id": context_id, "context_url": context_url, "raw": resp}
@@ -526,8 +541,8 @@ def submit():
         HeyGen_API_error += 1
         entry_obj["heygen_liveavatar"]["push_status"] = "failed"
         entry_obj["heygen_liveavatar"]["pushed_at_utc"] = created_at
-        entry_obj["heygen_liveavatar"]["error"] = "Skipped push: full_prompt is empty (scrape likely failed)."
-        log_heygen_line(f"{created_at} | xxxx={xxxx} | code=empty_prompt | error=Skipped push: empty full_prompt")
+        entry_obj["heygen_liveavatar"]["error"] = "Skipped push: prompt is empty (scrape likely failed)."
+        log_heygen_line(f"{created_at} | xxxx={xxxx} | code=empty_prompt | error=Skipped push: empty prompt")
 
     ctx_write = write_entry_context_json(entry_id, entry_obj)
 
