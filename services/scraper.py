@@ -1,182 +1,289 @@
+"""
+services/scraper.py
+
+Lightweight site scraper used by app.py.
+
+Goal:
+- Given a start URL, crawl a limited number of internal pages (BFS),
+  extract clean visible text per page, and return:
+    {
+      "base_url": <start_url>,
+      "final_url": <final_url after redirects>,
+      "pages": [ {page dict...}, ... ],
+      "links": [<all discovered internal links>, ...]
+    }
+
+Notes:
+- Keep it dependency-light: requests + beautifulsoup4 (+ lxml parser via bs4).
+- Be resilient: timeouts, bad HTML, redirects, non-HTML responses.
+- This module intentionally DOES NOT do aggressive crawling (no JS rendering).
+"""
+
+from __future__ import annotations
+
 import re
-from urllib.parse import urljoin, urlparse
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set, Tuple
+from urllib.parse import urljoin, urlparse, urlunparse, urldefrag
 
 import requests
 from bs4 import BeautifulSoup
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (AgenticAvatarBot/1.0)"}
+
+DEFAULT_UA = (
+    "Mozilla/5.0 (compatible; AAA-WebScraper/1.0; +https://example.invalid)"
+)
+
+_WHITESPACE_RE = re.compile(r"\s+")
 
 
-def _clean_text(html: str) -> tuple[str, str, str | None]:
-    soup = BeautifulSoup(html, "lxml")
-
-    # Remove noise
-    for tag in soup(["script", "style", "noscript", "iframe", "svg"]):
-        tag.decompose()
-
-    title = soup.title.string.strip() if soup.title and soup.title.string else ""
-    h1 = soup.find("h1")
-    h1_text = h1.get_text(" ", strip=True) if h1 else None
-
-    text = soup.get_text(separator="\n")
-    lines = [ln.strip() for ln in text.splitlines() if len(ln.strip()) > 40]
-    cleaned = "\n".join(lines)
-
-    return cleaned, title, h1_text
+def _now_iso() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
 
 
-def _base_host_key(host: str) -> str:
+def _clean_whitespace(text: str) -> str:
+    return _WHITESPACE_RE.sub(" ", (text or "").strip())
+
+
+def _strip_fragment(url: str) -> str:
+    return urldefrag(url)[0]
+
+
+def _normalize_url(url: str) -> str:
     """
-    v1 heuristic for internal-link matching.
-    Example: www.bescon.com.sg -> bescon.com.sg
+    Normalize URL for de-dupe:
+    - remove fragment
+    - strip trailing slash (except root)
+    - lower-case scheme/host
+    - remove default ports (:80 for http, :443 for https)
     """
-    host = (host or "").lower().strip(".")
-    if host.startswith("www."):
-        host = host[4:]
-    parts = host.split(".")
-    # keep last 3 labels for com.sg style
-    return ".".join(parts[-3:]) if len(parts) >= 3 else host
+    url = _strip_fragment((url or "").strip())
+    p = urlparse(url)
+    scheme = (p.scheme or "https").lower()
+    netloc = (p.netloc or "").lower()
+
+    path = p.path or "/"
+    path = re.sub(r"/{2,}", "/", path)
+
+    if netloc.endswith(":80") and scheme == "http":
+        netloc = netloc[:-3]
+    if netloc.endswith(":443") and scheme == "https":
+        netloc = netloc[:-4]
+
+    if path != "/" and path.endswith("/"):
+        path = path[:-1]
+
+    return urlunparse((scheme, netloc, path, "", p.query, ""))
 
 
-def _is_internal(url: str, host_key: str) -> bool:
+def _same_site(a: str, b: str) -> bool:
+    pa = urlparse(a)
+    pb = urlparse(b)
+    return (pa.netloc or "").lower() == (pb.netloc or "").lower()
+
+
+def _is_http_url(url: str) -> bool:
     try:
-        h = (urlparse(url).hostname or "").lower()
-        return h == host_key or h.endswith("." + host_key)
+        return urlparse(url).scheme in ("http", "https")
     except Exception:
         return False
 
 
-def fetch_page(url: str) -> dict:
-    r = requests.get(url, headers=HEADERS, timeout=25, allow_redirects=True)
-    return {
-        "status": r.status_code,
-        "final_url": r.url,
-        "html": r.text if r.status_code < 400 else "",
-    }
+def _extract_visible_text(soup: BeautifulSoup) -> str:
+    """
+    Extract user-facing text; remove scripts/styles/noscript/svg/canvas/iframes.
+    Also removes common boilerplate containers (nav/footer/header/aside) to reduce noise.
+    """
+    for tag in soup(["script", "style", "noscript", "svg", "canvas", "iframe"]):
+        tag.decompose()
+
+    for tag in soup.find_all(["nav", "footer", "header", "aside"]):
+        tag.decompose()
+
+    text = soup.get_text(separator=" ")
+    return _clean_whitespace(text)
 
 
-def discover_internal_links(html: str, base_url: str, host_key: str) -> list[dict]:
+def _extract_internal_links(
+    base_url: str, html: str, final_url: Optional[str] = None
+) -> List[str]:
+    """
+    Extract internal links (same host as final_url if provided, else base_url).
+    """
+    host_url = final_url or base_url
     soup = BeautifulSoup(html, "lxml")
-    found = []
+    found: List[str] = []
 
     for a in soup.find_all("a", href=True):
         href = (a.get("href") or "").strip()
         if not href:
             continue
 
-        abs_url = urljoin(base_url, href)
-        if abs_url.startswith(("mailto:", "tel:", "javascript:")):
+        if href.startswith(("mailto:", "tel:", "javascript:", "data:")):
             continue
 
-        abs_url = abs_url.split("#")[0]
-        if not abs_url.startswith(("http://", "https://")):
+        abs_url = urljoin(host_url, href)
+        abs_url = _normalize_url(abs_url)
+        if not _is_http_url(abs_url):
             continue
 
-        if _is_internal(abs_url, host_key):
-            found.append(
-                {
-                    "url": abs_url,
-                    "anchor_text": (a.get_text(" ", strip=True) or "")[:80] or None,
-                    "discovered_on": base_url,
-                    "type_hint": "unknown",
-                }
-            )
+        if _same_site(host_url, abs_url):
+            found.append(abs_url)
 
-    # de-dupe
-    seen = set()
-    out = []
-    for item in found:
-        if item["url"] in seen:
-            continue
-        seen.add(item["url"])
-        out.append(item)
+    seen: Set[str] = set()
+    out: List[str] = []
+    for u in found:
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
     return out
 
 
-def scrape_site(seed_url: str, max_pages: int = 5, max_chars_per_page: int = 20000) -> dict:
-    """
-    Scrape seed_url + up to max_pages internal pages.
-    Returns pages + deduped internal links + base_host_key for scope.
-    """
-    seed_host = (urlparse(seed_url).hostname or "").lower()
-    host_key = _base_host_key(seed_host)
+@dataclass
+class PageResult:
+    url: str
+    final_url: str
+    status_code: int
+    content_type: str
+    title: str
+    clean_text: str
+    fetched_at: str
 
-    queue = [seed_url]
-    visited = set()
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "url": self.url,
+            "final_url": self.final_url,
+            "status_code": self.status_code,
+            "content_type": self.content_type,
+            "title": self.title,
+            "clean_text": self.clean_text,
+            "text_len": len(self.clean_text or ""),
+            "fetched_at": self.fetched_at,
+        }
 
-    pages = []
-    all_links = []
+
+def scrape_page(
+    url: str,
+    timeout: int = 20,
+    user_agent: str = DEFAULT_UA,
+) -> Tuple[Optional[PageResult], List[str]]:
+    """
+    Fetch a single page and return (page_result, internal_links).
+    If the response is not HTML or an error occurs, page_result may be None.
+    """
+    headers = {"User-Agent": user_agent, "Accept": "text/html,application/xhtml+xml"}
+    fetched_at = _now_iso()
+
+    try:
+        r = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+        final_url = _normalize_url(r.url or url)
+        status = int(getattr(r, "status_code", 0) or 0)
+        ctype = (r.headers.get("content-type") or "").split(";")[0].strip().lower()
+
+        if "html" not in ctype:
+            pr = PageResult(
+                url=_normalize_url(url),
+                final_url=final_url,
+                status_code=status,
+                content_type=ctype or "",
+                title="",
+                clean_text="",
+                fetched_at=fetched_at,
+            )
+            return pr, []
+
+        html = r.text or ""
+        soup = BeautifulSoup(html, "lxml")
+
+        title = ""
+        if soup.title and soup.title.string:
+            title = _clean_whitespace(str(soup.title.string))
+
+        clean_text = _extract_visible_text(soup)
+        internal_links = _extract_internal_links(url, html, final_url=final_url)
+
+        pr = PageResult(
+            url=_normalize_url(url),
+            final_url=final_url,
+            status_code=status,
+            content_type=ctype or "text/html",
+            title=title,
+            clean_text=clean_text,
+            fetched_at=fetched_at,
+        )
+        return pr, internal_links
+
+    except Exception:
+        return None, []
+
+
+def scrape_site(
+    start_url: str,
+    max_pages: int = 10,
+    timeout: int = 20,
+    user_agent: str = DEFAULT_UA,
+) -> Dict[str, Any]:
+    """
+    Crawl internal pages from start_url (BFS) up to max_pages.
+
+    Returns dict with:
+      - base_url
+      - final_url (after fetching start_url)
+      - pages: list of page dicts (includes clean_text)
+      - links: all discovered internal links (deduped)
+    """
+    start_url = _normalize_url(start_url)
+    pages: List[Dict[str, Any]] = []
+    all_links: List[str] = []
+
+    queue: List[str] = [start_url]
+    seen: Set[str] = set()
+
+    final_root_url = start_url
 
     while queue and len(pages) < max_pages:
         url = queue.pop(0)
-        if url in visited:
+        if url in seen:
             continue
-        visited.add(url)
+        seen.add(url)
 
-        fetched = fetch_page(url)
-        status = fetched["status"]
-        final_url = fetched["final_url"]
-        html = fetched["html"]
-
-        if status >= 400 or not html:
-            pages.append(
-                {
-                    "page_id": "",
-                    "url": url,
-                    "final_url": final_url,
-                    "title": "",
-                    "h1": None,
-                    "canonical_url": None,
-                    "content_hash": "",
-                    "char_count": 0,
-                    "word_count": 0,
-                    "scraped_at_utc": "",
-                    "status": status,
-                    "clean_text": "",
-                }
-            )
+        pr, links = scrape_page(url, timeout=timeout, user_agent=user_agent)
+        if pr is None:
             continue
 
-        cleaned, title, h1 = _clean_text(html)
-        cleaned = cleaned[:max_chars_per_page]
-        word_count = len(re.findall(r"\w+", cleaned))
+        if len(pages) == 0 and pr.final_url:
+            final_root_url = pr.final_url
 
-        pages.append(
-            {
-                "page_id": "",
-                "url": url,
-                "final_url": final_url,
-                "title": title,
-                "h1": h1,
-                "canonical_url": None,
-                "content_hash": "",
-                "char_count": len(cleaned),
-                "word_count": word_count,
-                "scraped_at_utc": "",
-                "status": status,
-                "clean_text": cleaned,
-            }
-        )
+        pages.append(pr.to_dict())
 
-        found = discover_internal_links(html, final_url, host_key)
-        all_links.extend(found)
+        for u in links:
+            if u not in all_links:
+                all_links.append(u)
 
-        for item in found:
-            u = item["url"]
-            if u not in visited and u not in queue and len(queue) < 200:
+            # Keep queue bounded to avoid exploding on link-heavy pages
+            if u not in seen and u not in queue and len(queue) < max_pages * 5:
                 queue.append(u)
 
-    # dedupe links
-    seen = set()
-    links = []
-    for item in all_links:
-        if item["url"] in seen:
-            continue
-        seen.add(item["url"])
-        links.append(item)
-
     return {
-        "base_host_key": host_key,
+        "base_url": start_url,
+        "final_url": final_root_url,
         "pages": pages,
-        "links": links,
+        "links": all_links,
+        "max_pages": max_pages,
     }
+
+
+# Backwards-compatible alias: older app.py versions may import scrape_site_map
+def scrape_site_map(
+    start_url: str,
+    max_pages: int = 10,
+    timeout: int = 20,
+    user_agent: str = DEFAULT_UA,
+) -> Dict[str, Any]:
+    return scrape_site(
+        start_url,
+        max_pages=max_pages,
+        timeout=timeout,
+        user_agent=user_agent,
+    )
