@@ -1,0 +1,356 @@
+{
+  "schema_version": "1.0",
+  "entry_id": "59cd8060f456",
+  "identity": {
+    "xxxx": "bescon",
+    "input_url": "https://bescon.com.sg/",
+    "final_url": "https://bescon.com.sg/",
+    "final_host": "bescon.com.sg"
+  },
+  "fetch": {
+    "fetched_at_utc": "2025-12-28T03:46:45.913179+00:00",
+    "http_status": null,
+    "redirect_chain": [],
+    "errors": []
+  },
+  "crawl_policy": {
+    "scope_rule": "same_domain_only",
+    "max_pages": 5,
+    "max_chars_per_page": 120000,
+    "max_context_words": 600
+  },
+  "links": {
+    "internal_links_discovered": [
+      "https://bescon.com.sg/About_Us.htm",
+      "https://bescon.com.sg/Our_Services.htm",
+      "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "https://bescon.com.sg/Career.htm",
+      "https://bescon.com.sg/Contact_Us.htm",
+      "https://bescon.com.sg/default.htm",
+      "https://bescon.com.sg/Disclaimer.htm",
+      "https://bescon.com.sg/Site_Map.htm",
+      "https://bescon.com.sg/Projects/Airlines.htm",
+      "https://bescon.com.sg/Projects/Banks.htm",
+      "https://bescon.com.sg/Projects/Commercial.htm",
+      "https://bescon.com.sg/Projects/Community.htm",
+      "https://bescon.com.sg/Projects/Conserve_Develop.htm",
+      "https://bescon.com.sg/Projects/Data_Centers.htm",
+      "https://bescon.com.sg/Projects/Healthcare.htm",
+      "https://bescon.com.sg/Projects/Hotels.htm",
+      "https://bescon.com.sg/Projects/Industrial.htm",
+      "https://bescon.com.sg/Projects/Institution.htm",
+      "https://bescon.com.sg/Projects/MRT.htm",
+      "https://bescon.com.sg/Projects/Recreational.htm",
+      "https://bescon.com.sg/Projects/Religious.htm",
+      "https://bescon.com.sg/Projects/Residential.htm"
+    ],
+    "internal_links_selected": [
+      "https://bescon.com.sg/About_Us.htm",
+      "https://bescon.com.sg/Our_Services.htm",
+      "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "https://bescon.com.sg/Career.htm",
+      "https://bescon.com.sg/Contact_Us.htm",
+      "https://bescon.com.sg/default.htm",
+      "https://bescon.com.sg/Disclaimer.htm",
+      "https://bescon.com.sg/Site_Map.htm",
+      "https://bescon.com.sg/Projects/Airlines.htm",
+      "https://bescon.com.sg/Projects/Banks.htm"
+    ]
+  },
+  "pages": [
+    {
+      "page_id": "",
+      "url": "https://bescon.com.sg/",
+      "final_url": "https://bescon.com.sg/",
+      "title": "Bescon Consulting Engineers Pte - About Us",
+      "h1": null,
+      "canonical_url": null,
+      "content_hash": "",
+      "char_count": 2388,
+      "word_count": 341,
+      "scraped_at_utc": "",
+      "status": 200
+    },
+    {
+      "page_id": "",
+      "url": "https://bescon.com.sg/About_Us.htm",
+      "final_url": "https://bescon.com.sg/About_Us.htm",
+      "title": "Bescon Consulting Engineers Pte - About Us",
+      "h1": null,
+      "canonical_url": null,
+      "content_hash": "",
+      "char_count": 2388,
+      "word_count": 341,
+      "scraped_at_utc": "",
+      "status": 200
+    },
+    {
+      "page_id": "",
+      "url": "https://bescon.com.sg/Our_Services.htm",
+      "final_url": "https://bescon.com.sg/Our_Services.htm",
+      "title": "Bescon Consulting Engineers Pte - Our Services",
+      "h1": null,
+      "canonical_url": null,
+      "content_hash": "",
+      "char_count": 882,
+      "word_count": 95,
+      "scraped_at_utc": "",
+      "status": 200
+    },
+    {
+      "page_id": "",
+      "url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "final_url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "title": "Bescon's Awards",
+      "h1": null,
+      "canonical_url": null,
+      "content_hash": "",
+      "char_count": 2831,
+      "word_count": 434,
+      "scraped_at_utc": "",
+      "status": 200
+    },
+    {
+      "page_id": "",
+      "url": "https://bescon.com.sg/Career.htm",
+      "final_url": "https://bescon.com.sg/Career.htm",
+      "title": "Bescon Consulting Engineers Pte - Career with Us",
+      "h1": null,
+      "canonical_url": null,
+      "content_hash": "",
+      "char_count": 540,
+      "word_count": 76,
+      "scraped_at_utc": "",
+      "status": 200
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "000",
+      "page_url": "https://bescon.com.sg/",
+      "section_heading": null,
+      "chunk_index": 0,
+      "text": "Bescon Consulting Engineers Pte - About Us Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. including feasibility studies, conceptual & final design and construction management services. Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to",
+      "char_count": 838,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "001",
+      "page_url": "https://bescon.com.sg/",
+      "section_heading": null,
+      "chunk_index": 1,
+      "text": "track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying",
+      "char_count": 878,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "002",
+      "page_url": "https://bescon.com.sg/",
+      "section_heading": null,
+      "chunk_index": 2,
+      "text": "close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. is committed to a high standard of integrity, quality and professionalism. COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+      "char_count": 670,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "000",
+      "page_url": "https://bescon.com.sg/About_Us.htm",
+      "section_heading": null,
+      "chunk_index": 0,
+      "text": "Bescon Consulting Engineers Pte - About Us Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. including feasibility studies, conceptual & final design and construction management services. Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to",
+      "char_count": 838,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "001",
+      "page_url": "https://bescon.com.sg/About_Us.htm",
+      "section_heading": null,
+      "chunk_index": 1,
+      "text": "track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying",
+      "char_count": 878,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "002",
+      "page_url": "https://bescon.com.sg/About_Us.htm",
+      "section_heading": null,
+      "chunk_index": 2,
+      "text": "close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. is committed to a high standard of integrity, quality and professionalism. COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+      "char_count": 670,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "000",
+      "page_url": "https://bescon.com.sg/Our_Services.htm",
+      "section_heading": null,
+      "chunk_index": 0,
+      "text": "Bescon Consulting Engineers Pte - Our Services - Project Control & Construction Management Systems - Aquatic & Feature Pool Filtration & Pumping Systems - Air-conditioning & Mechanical Ventilation (ACMV) Systems - Airport Support Facilities Installations - Automatic Sprinkler & Water Deluge Installations - Foam & Dry Chemical Fire Suppression & Extinguishing Systems - Sanitary & Foul Water Drainage Installations - Swimming Pool Filtration & Pumping Systems Electrical, Control and Telecommunication - AC High & Low Voltage Power Distribution Systems - D.C. & Extra Low Voltage Supply Systems - Electromagnetic Interference Control Systems - Emergency / Standby Power Supply Systems - Supervisory Control & Data Acquisition (SCADA) Systems - Telecommunication & Computer Cabling Installations - Chemical & Gas Distribution Installations COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+      "char_count": 882,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "000",
+      "page_url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "section_heading": null,
+      "chunk_index": 0,
+      "text": "ISO 14001:2015 Environmental Management System We are proud to have been associated with the following projects which were awarded BCA Construction Excellence Awards, Energy Efficient Building Awards and Green Mark Awards: - Commercial / Mixed Development Buildings Category 2019 HDB Design Awards/HDB Construction Awards 2019 Green Mark Award For Retail (Gold Plus) 2019 Green Mark Award For Buildings (Gold Plus) 2018 Green Mark Award For Buildings (Platinum) 2018 Green Mark Award For Buildings (Platinum) 2018 Green Mark Award For Retail (Platinum) 2018 Green Mark Award For Retail (Platinum) 2018 Green Mark Award For Retail (Platinum) 2018 Green Mark Award For Retail (Gold Plus) DBS Thomson Branch and DSB Treasures at Thomson 2018 Green Mark Award For Retail (Gold Plus) 2018 Green Mark Award For Retail (Gold Plus) 2017 Green Mark Award For Buildings (Gold Plus)",
+      "char_count": 871,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "001",
+      "page_url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "section_heading": null,
+      "chunk_index": 1,
+      "text": "2017 Green Mark Award For Buildings (Gold Plus) 2017 Green Mark for Office Interior (Platinum) INSEAD Leadership Development Centre (Phase 3) 2016 ASEAN Energy Awards - ASEAN Green Building Awards 2016 BCA-IDA Green Mark for Data Centres (Platinum) 2016 Green Mark for Office Interior (Platinum) 2016 Green Mark Award For Buildings (Gold Plus) NTU Wee Kim Wee School of Communication & Information 2014 BCA Green Mark Award For Buildings (Platinum) 2014 BCA Green Mark Award For Buildings (Platinum) 2014 BCA Green Mark Award For Buildings (Gold) 2014 BCA Green Mark Award For Buildings (Gold Plus) 2014 BCA Green Mark Award For Buildings (Platinum) 2014 BCA Green Mark Award For Buildings (Gold) 2014 BCA Green Mark Award For Buildings (Platinum) 2012 Universal Design Award for Built Environment (Bronze) 2012 BCA Green Mark for Buildings Award (Platinum)",
+      "char_count": 857,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "002",
+      "page_url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "section_heading": null,
+      "chunk_index": 2,
+      "text": "2011 BCA Green Mark for Buildings Award (Platinum) 2011 BCA Green Mark for Buildings Award (Gold) 2011 BCA Green Mark for Buildings Award (Platinum) 2011 BCA Green Mark for Buildings Award (Gold) - Commercial / Mixed Development Buildings 2010 Green Mark for Buildings Award (Platinum) 2010 Green Mark for Buildings Award (Certified) 2010 Universal Design Award for Built Environment 2010 Design and Engineering Safety Excellence Award 2010 Design and Engineering Safety Excellence Award 2010 Universal Design Award for Built Environment 2009 Green Mark for Buildings Award (Platinum) 2009 Green Mark for Buildings Award (Platinum) 2009 Green Mark for Buildings Award (Gold) 2008 Green Mark for Buildings Award (Platinum) 2008 Green Mark for Buildings Award (Gold Plus) 2008 Green Mark for Buildings Award (Gold) 2008 Green Mark for Buildings Award (Gold) 2008 Green Mark For Buildings Award (Gold)",
+      "char_count": 898,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "003",
+      "page_url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "section_heading": null,
+      "chunk_index": 3,
+      "text": "2005 (Riba World Wide Awards - Residential Buildings Category) Design and Build of a 2 Storey Factory Warehouse cum Corporate Office Development at Tuas Link 4 COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+      "char_count": 202,
+      "source_url_refs_in_text": []
+    },
+    {
+      "chunk_id": "000",
+      "page_url": "https://bescon.com.sg/Career.htm",
+      "section_heading": null,
+      "chunk_index": 0,
+      "text": "Bescon Consulting Engineers Pte - Career with Us We are constantly looking for talented individuals to join our team. If you think you have the right qualities we are looking for, please email your resume to Degree in Mechanical/Electrical/Building Services Engineering. Min. 3 years relevant experience in the design, supervision and management of Building Services Installation. Electrical/Air-conditioning/Piped Services/Fire Protection. Possess basic system and network troubleshooting skills. COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+      "char_count": 540,
+      "source_url_refs_in_text": []
+    }
+  ],
+  "prompt_engineering": {
+    "source_index": [
+      {
+        "label": "Source 1",
+        "url": "https://bescon.com.sg/About_Us.htm"
+      },
+      {
+        "label": "Source 2",
+        "url": "https://bescon.com.sg/Our_Services.htm"
+      },
+      {
+        "label": "Source 3",
+        "url": "https://bescon.com.sg/Projects/Our_Projects.htm"
+      },
+      {
+        "label": "Source 4",
+        "url": "https://bescon.com.sg/Career.htm"
+      },
+      {
+        "label": "Source 5",
+        "url": "https://bescon.com.sg/Contact_Us.htm"
+      },
+      {
+        "label": "Source 6",
+        "url": "https://bescon.com.sg/default.htm"
+      },
+      {
+        "label": "Source 7",
+        "url": "https://bescon.com.sg/Disclaimer.htm"
+      },
+      {
+        "label": "Source 8",
+        "url": "https://bescon.com.sg/Site_Map.htm"
+      },
+      {
+        "label": "Source 9",
+        "url": "https://bescon.com.sg/Projects/Airlines.htm"
+      },
+      {
+        "label": "Source 10",
+        "url": "https://bescon.com.sg/Projects/Banks.htm"
+      }
+    ],
+    "word_budget": 600,
+    "prompt_word_stats": {
+      "max_words": 600,
+      "base_words": 69,
+      "content_words": 474,
+      "final_words": 543,
+      "truncated": true,
+      "chunks_included": 4,
+      "chunks_total": 12
+    },
+    "full_prompt": "You are a passionate teacher acting as a mediator for learners.\n\nScope & safety:\nKeep the conversation focused exclusively on bescon and related information only.\nBounce all other topics with this fixed sentence:\n\"Let us focus only on bescon only\"\nCategorically deny answering any topic outside the scope defined here.\n\nStyle & tone:\nUse short replies: 1–3 concise sentences or a short paragraph.\nBe clear, friendly, and encouraging.\n\nCONTENT (scraped):\n---------------------------------\n[https://bescon.com.sg/] Bescon Consulting Engineers Pte - About Us Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. including feasibility studies, conceptual & final design and construction management services. Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to\n\n[https://bescon.com.sg/] track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying\n\n[https://bescon.com.sg/] close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. is committed to a high standard of integrity, quality and professionalism. COPYRIGHT, BESCON CONSULTING ENGINEERS PTE\n\n[https://bescon.com.sg/About_Us.htm] Bescon Consulting Engineers Pte - About Us Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. including feasibility studies, conceptual & final design and construction management services. Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to"
+  },
+  "heygen_liveavatar": {
+    "push_status": "failed",
+    "request_payload": {
+      "name": "TRIAL-1",
+      "opening_text": "Welcome to the Q & A session on BESCON",
+      "prompt": "You are a passionate teacher acting as a mediator for learners.\n\nScope & safety:\nKeep the conversation focused exclusively on bescon and related information only.\nBounce all other topics with this fixed sentence:\n\"Let us focus only on bescon only\"\nCategorically deny answering any topic outside the scope defined here.\n\nStyle & tone:\nUse short replies: 1–3 concise sentences or a short paragraph.\nBe clear, friendly, and encouraging.\n\nCONTENT (scraped):\n---------------------------------\n[https://bescon.com.sg/] Bescon Consulting Engineers Pte - About Us Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. including feasibility studies, conceptual & final design and construction management services. Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to\n\n[https://bescon.com.sg/] track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying\n\n[https://bescon.com.sg/] close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. is committed to a high standard of integrity, quality and professionalism. COPYRIGHT, BESCON CONSULTING ENGINEERS PTE\n\n[https://bescon.com.sg/About_Us.htm] Bescon Consulting Engineers Pte - About Us Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. including feasibility studies, conceptual & final design and construction management services. Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to",
+      "interactive_style": "conversational",
+      "links": [
+        {
+          "url": "https://bescon.com.sg/About_Us.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Our_Services.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Projects/Our_Projects.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Career.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Contact_Us.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/default.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Disclaimer.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Site_Map.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Projects/Airlines.htm"
+        },
+        {
+          "url": "https://bescon.com.sg/Projects/Banks.htm"
+        }
+      ]
+    },
+    "response": {
+      "context_id": null,
+      "context_url": null,
+      "raw": {
+        "status_code": 422,
+        "error": {
+          "code": 4000,
+          "data": null,
+          "message": "Request validation errors. body -> links -> 0 -> faq: Field required; body -> links -> 1 -> faq: Field required; body -> links -> 2 -> faq: Field required; body -> links -> 3 -> faq: Field required; body -> links -> 4 -> faq: Field required; body -> links -> 5 -> faq: Field required; body -> links -> 6 -> faq: Field required; body -> links -> 7 -> faq: Field required; body -> links -> 8 -> faq: Field required; body -> links -> 9 -> faq: Field required"
+        }
+      }
+    },
+    "pushed_at_utc": "2025-12-28T03:46:45.913179+00:00",
+    "error": "{'status_code': 422, 'error': {'code': 4000, 'data': None, 'message': 'Request validation errors. body -> links -> 0 -> faq: Field required; body -> links -> 1 -> faq: Field required; body -> links -> 2 -> faq: Field required; body -> links -> 3 -> faq: Field required; body -> links -> 4 -> faq: Field required; body -> links -> 5 -> faq: Field required; body -> links -> 6 -> faq: Field required; body -> links -> 7 -> faq: Field required; body -> links -> 8 -> faq: Field required; body -> links -> 9 -> faq: Field required'}}"
+  },
+  "submission": {
+    "created_at": "2025-12-28T03:46:45.913179+00:00",
+    "name": "Unni Krishnan A",
+    "company": "TRIAL-1",
+    "email": "unni.bca@gmail.com",
+    "phone": "+6597890305",
+    "web_url": "https://bescon.com.sg/",
+    "stage": 2
+  }
+}
