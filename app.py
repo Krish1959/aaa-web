@@ -514,7 +514,7 @@ def submit():
         "opening_text": payload_opening_text,
         "prompt": payload_prompt,
         "interactive_style": "conversational",
-        "links": payload_links,
+        #"links": payload_links,
     }
 
     if payload_prompt.strip():
