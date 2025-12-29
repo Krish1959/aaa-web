@@ -1,0 +1,190 @@
+{
+  "created_at": "2025-12-29T07:02:18.012331+00:00",
+  "entry_id": "a341bf5bddc9",
+  "form": {
+    "created_at": "2025-12-29T07:02:18.012331+00:00",
+    "entry_id": "a341bf5bddc9",
+    "name": "Unni Krishnan A",
+    "company": "BESCON1",
+    "email": "unni.bca@gmail.com",
+    "phone": "+6597890305",
+    "web_url": "https://www.bescon.com.sg/",
+    "stage": 1
+  },
+  "links": {},
+  "scrape": {
+    "base_url": "https://www.bescon.com.sg/",
+    "final_url": "https://bescon.com.sg/",
+    "pages": [
+      {
+        "url": "https://www.bescon.com.sg/",
+        "final_url": "https://bescon.com.sg/",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - About Us",
+        "clean_text": "Bescon Consulting Engineers Pte - About Us Bescon Consulting Engineers Pte (BESCON) is an award winning Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. We provide a full range of consulting services including feasibility studies, conceptual & final design and construction management services. Company Profile Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects for clients both locally and regionally. With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan and BES Perunding of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to our clients� needs. BESCON's track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service and attention that BESCON is the quality firm it is today. Our Mission Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services to the highest professional standard. BESCON aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. Our Philosophy The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, where BESCON plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. BESCON is committed to a high standard of integrity, quality and professionalism. Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 2780,
+        "fetched_at": "2025-12-29T07:02:18"
+      },
+      {
+        "url": "https://bescon.com.sg/About_Us.htm",
+        "final_url": "https://bescon.com.sg/About_Us.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - About Us",
+        "clean_text": "Bescon Consulting Engineers Pte - About Us Bescon Consulting Engineers Pte (BESCON) is an award winning Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. We provide a full range of consulting services including feasibility studies, conceptual & final design and construction management services. Company Profile Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects for clients both locally and regionally. With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan and BES Perunding of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to our clients� needs. BESCON's track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service and attention that BESCON is the quality firm it is today. Our Mission Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services to the highest professional standard. BESCON aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. Our Philosophy The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, where BESCON plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. BESCON is committed to a high standard of integrity, quality and professionalism. Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 2780,
+        "fetched_at": "2025-12-29T07:02:19"
+      },
+      {
+        "url": "https://bescon.com.sg/Our_Services.htm",
+        "final_url": "https://bescon.com.sg/Our_Services.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - Our Services",
+        "clean_text": "Bescon Consulting Engineers Pte - Our Services Project Management - As-Built Drawings - Construction Programme Scheduling - On-site Construction Supervision - Operation & Maintenance Manuals - Project Control & Construction Management Systems - Project Cost Estimation - Project Feasibility Studies Mechanical - Acoustic & Noise Control - Aquatic & Feature Pool Filtration & Pumping Systems - Air-conditioning & Mechanical Ventilation (ACMV) Systems - Aircraft Hangar Installations - Aircraft Simulator Installations - Airport Support Facilities Installations - Automatic Sprinkler & Water Deluge Installations - Boiler Systems - Central Energy Plants - Clean Room Systems - Energy Conservation & Recovery Systems - Foam & Dry Chemical Fire Suppression & Extinguishing Systems - Hoists & Cranes Systems - Hoodless Ventilated Ceiling Systems - Hosereels Installations - Life Safety Systems - Potable Water Treatment Systems - Refrigeration Systems - Sanitary & Foul Water Drainage Installations - SPA Pool Filtration & Pumping Systems - Swimming Pool Filtration & Pumping Systems - Vertical Transportation Installations - Water Pollution Control Systems - Water Supply & Distribution Systems - Wet Risers & Hydrant Installations Electrical, Control and Telecommunication - AC High & Low Voltage Power Distribution Systems - Audio & Video Systems - Automatic Fire Alarm Systems - Building Automation Systems - Building Intelligence Systems - Cable Vision Systems - CCTV Systems - Computer Power Supply Systems - D.C. & Extra Low Voltage Supply Systems - Energy Management Systems - Electromagnetic Interference Control Systems - Emergency / Standby Power Supply Systems - Instrumentation & Control Systems - Integrated Security Systems - IT & Internet Infrastructure Systems - Lighting & Illumination Systems - Lightning Protection Systems - MATV Systems - Power Surge Suppression Systems - Supervisory Control & Data Acquisition (SCADA) Systems - Telecommunication & Computer Cabling Installations - Telephone & Intercom Systems - Uninterruptible Power Supply Systems Industrial and Process - Bulk Gas Systems - Central & Process Vacuum Systems - Chemical & Gas Distribution Installations - De-ionized & RO Water Systems - High Purity Water Systems - Medical Gas Systems - Process Piping Installations Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 2372,
+        "fetched_at": "2025-12-29T07:02:19"
+      },
+      {
+        "url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+        "final_url": "https://bescon.com.sg/Projects/Our_Projects.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon's Awards",
+        "clean_text": "Bescon's Awards Categories: Awards Airline Facilities Banking Facilities Commercial Community Centres Conservation & Development Data Centers Healthcare & Pharmaceutical Hotels Industrial/Specialised Factories Institution/Cultural Mass Rapid Transit (MRT) Recreational Religious Centres Residential AWARDS ISO 9001:2015 Quality Management System ISO 14001:2015 Environmental Management System Bizsafe Level 3 We are proud to have been associated with the following projects which were awarded BCA Construction Excellence Awards, Energy Efficient Building Awards and Green Mark Awards: Kingston 2020 Construction Excellence Award - Industrial Buildings Category Oasis Terrace 2020 Construction Excellence Award - Commercial / Mixed Development Buildings Category Oasis Terrace 2019 HDB Design Awards/HDB Construction Awards - Mixed Development Category POSB Jurong Point Branch 2019 Green Mark Award For Retail (Gold Plus) NorthShore Cove 2019 Green Mark Award For Buildings (Gold Plus) - New Residential Buildings Solaris @ Kallang 164 2018 Green Mark Award For Buildings (Platinum) - New Non-Residential Buildings Punggol Town Hub 2018 Green Mark Award For Buildings (Platinum) - New Non-Residential Buildings BCA Gallery 2018 Green Mark Award For Retail (Platinum) DBS Plaza Singapura Branch 2018 Green Mark Award For Retail (Platinum) DBS Bishan Branch 2018 Green Mark Award For Retail (Platinum) DBS South Bridge Branch 2018 Green Mark Award For Retail (Gold Plus) DBS Thomson Branch and DSB Treasures at Thomson 2018 Green Mark Award For Retail (Gold Plus) DBS Towner Road Branch 2018 Green Mark Award For Retail (Gold Plus) Oasis Terraces 2017 Green Mark Award For Buildings (Gold Plus) - New Non-Residential Buildings Canberra Plaza 2017 Green Mark Award For Buildings (Gold Plus) - New Non-Residential Buildings Credit Suisse AG 2017 Green Mark for Office Interior (Platinum) Singapore Cancer Society (Gold Plus) 2017 Green Mark for Office Interior INSEAD Leadership Development Centre (Phase 3) 2016 ASEAN Energy Awards - ASEAN Green Building Awards - Large Green Building Category BCA JEM Data Centre 2016 BCA-IDA Green Mark for Data Centres (Platinum) Twitter Asia Pacific Pte Ltd 2016 Green Mark for Office Interior (Platinum) Waterwoods 2016 Green Mark Award For Buildings (Gold Plus) - New Residential Buildings NTU Wee Kim Wee School of Communication & Information 2014 BCA Green Mark Award For Buildings (Platinum) - Existing Non-Residential Buildings NTU Research Techno Plaza 2014 BCA Green Mark Award For Buildings (Platinum) - Existing Non-Residential Buildings NTUC Income - Prinsep House 2014 BCA Green Mark Award For Buildings (Gold) - New Non-Residential Buildings Kallang Riverside 2014 BCA Green Mark Award For Buildings (Gold Plus) - New Residential Buildings Insead Leadership Development Centre 2014 BCA Green Mark Award For Buildings (Platinum) - New Non-Residential Buildings GEMS World Academy Singapore Phase 1 2014 BCA Green Mark Award For Buildings (Gold) - New Non-Residential Buildings B House 2014 BCA Green Mark Award For Buildings (Platinum) - Landed House NTU South Spine Learning Hub 2013 BCA Green Mark Award (Platinum) - New Non-Residential Buildings Kampung Siglap Mosque 2012 Universal Design Award for Built Environment (Bronze) - Refurbished Building Category JEM 2012 BCA Green Mark for Buildings Award (Platinum) - New Non-Residential Buildings Rolls-Royce Test Bed Facility 2011 BCA Green Mark for Buildings Award (Platinum) - New Non-Residential Buildings-Special Optima @ Tanah Merah 2011 BCA Green Mark for Buildings Award (Gold) - New Residential Buildings Grundfos Singapore 2011 BCA Green Mark for Buildings Award (Platinum) - New Non-Residential Buildings-Special Amber Residences 2011 BCA Green Mark for Buildings Award (Gold) - New Residential Buildings Jurong Point 2 2011 Construction Excellence Award - Commercial / Mixed Development Buildings SkyTerrace @ Dawson 2010 Green Mark for Buildings Award (Platinum) - Residential New Buildings Bukit Panjang Plaza 2010 Green Mark for Buildings Award (Certified) - Non-Residential Existing Buildings The Beacon @ Cantonment Road 2010 Construction Excellence Award 313@Somerset 2010 Universal Design Award for Built Environment 2010 Design and Engineering Safety Excellence Award Jurong Point 2 / The Centris 2010 Design and Engineering Safety Excellence Award The Singapore Islamic Hub 2010 Universal Design Award for Built Environment Citi, 3 Changi Business Park Crescent 2009 Green Mark for Buildings Award (Platinum) - Non-Residential New Buildings Applied Materials Building 2009 Green Mark for Buildings Award (Platinum) - Special Buildings Seascape 2009 Green Mark for Buildings Award (Gold) - Residential New Buildings 313@ Somerset 2008 Green Mark for Buildings Award (Platinum) Riveria Gardens 2008 Green Mark for Buildings Award (Gold Plus) Turquoise 2008 Green Mark for Buildings Award (Gold) Halia 2008 Green Mark for Buildings Award (Gold) Applied Materials Building 2008 Green Mark For Buildings Award (Gold) Lincoln Modern 2005 (Riba World Wide Awards - Residential Buildings Category) Applied Materials Building 2004 (Commercial Buildings Category) 2004 (Energy Efficient Building Awards) Anglo-Chinese School 2004 (Institutional Buildings Category) St. Nicholas View 2001 (Residential Buildings Category) The Glencaird Residence 2001 (Residential Buildings Category) 161 Lavender Street 1995 - Heritage Award Design and Build of a 2 Storey Factory Warehouse cum Corporate Office Development at Tuas Link 4 1995 (Industrial Buildings Category) Ngee Ann City 1994 (Commercial Buildings Category) Compaq Asia Computer 1992 (Industrial Buildings Category) Becton Dickinson Medical Factory 1990 (Industrial Buildings Category) Apple Computer Factory 1989 (Industrial Buildings Category) 78 Shenton Way 1989 (Commercial Buildings Category) Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 5930,
+        "fetched_at": "2025-12-29T07:02:19"
+      },
+      {
+        "url": "https://bescon.com.sg/Career.htm",
+        "final_url": "https://bescon.com.sg/Career.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - Career with Us",
+        "clean_text": "Bescon Consulting Engineers Pte - Career with Us We are constantly looking for talented individuals to join our team. If you think you have the right qualities we are looking for, please email your resume to hr@bescon.com.sg M & E Engineers Degree in Mechanical/Electrical/Building Services Engineering. Min. 3 years relevant experience in the design, supervision and management of Building Services Installation. Be part of our team M & E Assistant Engineers Diploma in the relevant discipline. Min. 3 years relevant experience. M & E Designers Electrical/Air-conditioning/Piped Services/Fire Protection. Diploma/ITE/GCE O' Levels. Min. 3 years relevant experience. M & E Draftspersons Diploma/ITE/GCE O' Levels. Min. 2 years relevant experience. Trainee Draftspersons No experience required. Training in AutoCAD will be provided. System Engineer Possess basic system and network troubleshooting skills. Min. 2 years relevant experience. Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 1010,
+        "fetched_at": "2025-12-29T07:02:19"
+      },
+      {
+        "url": "https://bescon.com.sg/Contact_Us.htm",
+        "final_url": "https://bescon.com.sg/Contact_Us.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - Contact Us",
+        "clean_text": "Bescon Consulting Engineers Pte - Contact Us BESCON CONSULTING ENGINEERS PTE Company Reg. No.198300648N Address: Block 2 Joo Chiat Road #05-1121 Joo Chiat Complex Singapore 420002 Malaysia Address: Sdn. Bhd. A-03-34, Blok A, ECO Galleria, Jalan Eko Botani 3 Taman Eko Botani, 799100 Iskandar Puteri, Johor Bahru, Johor Malaysia Telephone : (65) 6293-2611 Facsimile : (65) 6293-1126 Email : bce@bescon.com.sg Location Map Bescon Consulting Engineers Pte is situated at Block 2 Joo Chiat Road. Please refer to the address and location map for more detailed information. Location Map Disclaimer Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 663,
+        "fetched_at": "2025-12-29T07:02:19"
+      },
+      {
+        "url": "https://bescon.com.sg/default.htm",
+        "final_url": "https://bescon.com.sg/default.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - About Us",
+        "clean_text": "Bescon Consulting Engineers Pte - About Us Bescon Consulting Engineers Pte (BESCON) is an award winning Professional Mechanical and Electrical (M&E) Engineering Consultancy and Project Management firm. We provide a full range of consulting services including feasibility studies, conceptual & final design and construction management services. Company Profile Since its founding in 1972, our practice has grown to encompass a wide range of projects. These range from residential, recreational, institutional, commercial and industrial to infrastructure projects for clients both locally and regionally. With a full complement of professional staff from the various engineering disciplines, clients can be assured of the most comprehensive and highest standard of professional services. Our overseas associates include P.T. Morimura and Associates of Japan and BES Perunding of Malaysia. This extensive pool of talent can be assembled into integrated project teams to develop comprehensive and cost-effective approaches to our clients� needs. BESCON's track record is proven and evident in the end result: building services with innovative design solutions that meets and often exceeds clients� expectation for performance. The professionalism of our service is evident in our dedication, conduct and undertaking of every project. It is through our personalised service and attention that BESCON is the quality firm it is today. Our Mission Our mission is to add value to our clients' businesses by providing innovative, quality and cost-effective expertise in Professional Engineering Consultancy Services. We are committed to performing our services to the highest professional standard. BESCON aims to achieve excellence and meet our client's total satisfaction in the provision of Professional Mechanical and Electrical Consultancy Services. Our Philosophy The continual exploration of Engineering ideas and skill to achieve the most value added solution ranks high on our priority. We are constantly seeking out the latest technological advancement, paying close attention to clients' requirements, aesthetics, functionality and economic elements of projects. We take the extra effort to think from our clients' perspective - understanding their needs and tailoring our solutions to meet those needs. Our commitment to this philosophy has resulted in many long-standing partnerships, where BESCON plays a continual role in the successful development of our clients' businesses and strategies. With most of our projects coming from existing clients, it is clear that this approach is the formula for our reputable standing. BESCON is committed to a high standard of integrity, quality and professionalism. Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 2780,
+        "fetched_at": "2025-12-29T07:02:20"
+      },
+      {
+        "url": "https://bescon.com.sg/Disclaimer.htm",
+        "final_url": "https://bescon.com.sg/Disclaimer.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - Disclaimer",
+        "clean_text": "Bescon Consulting Engineers Pte - Disclaimer Terms of Use, Copyright and Disclaimer Notes These terms and conditions govern your use of this Bescon Consulting Engineers Pte website. Please read through the Terms. If you do not agree with the Terms, do not use this Website. If you do use the Website, your conduct indicates that you agree to be bound by the terms. The contents of this Website may not be copied, reproduced, distributed, republished, downloaded, displayed, posted or transmitted in any form or by any means without the prior express written permission of Bescon Consulting Engineers Pte. The information contained in the material in this Website is only for information purposes. All information is provided \"as is\" and Bescon Consulting Engineers Pte assumes no responsibility for the accuracy of the information or materials. The material on this Website does not constitute advice and you should not rely on any material in this Website to make any decision or take any action. The pages contained in this Website may contain technical inaccuracies and typographical errors. The information in these pages may be updated from time to time and may at times be out of date. We accept no responsibility for keeping the information in these pages up to date or liability for any failure to do so. This Website contains links to other websites which are not under the control of and are not maintained by Bescon Consulting Engineers Pte. Bescon Consulting Engineers Pte is not responsible for the content of those sites. Bescon Consulting Engineers Pte provides these links for your convenience only but does not necessarily endorse the material on these sites. The site location display in the Location Map View is only a APPROXIMATE representation of the sites actual location and is for reference purposes only. Use beyond this intended purpose or any reliance on the information contained herein is at the user's own risk. Site location and other information are subject to inherent error and inaccuracies due to the limitations of the data collection methods, data entry errors, and other factors. Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 2189,
+        "fetched_at": "2025-12-29T07:02:20"
+      },
+      {
+        "url": "https://bescon.com.sg/Site_Map.htm",
+        "final_url": "https://bescon.com.sg/Site_Map.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon Consulting Engineers Pte - Site Map",
+        "clean_text": "Bescon Consulting Engineers Pte - Site Map Corporate Company Profile | Our Mission | Our Philosophy Join Us Contact Us | Location Map Our Services Project Management | Mechanical | Electrical, Control and Telecommunication | Industrial and Process Projects Showcase Our Awards Projects Showcase Terms Terms of Use | Copyright | Disclaimer Notes Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 416,
+        "fetched_at": "2025-12-29T07:02:20"
+      },
+      {
+        "url": "https://bescon.com.sg/Projects/Airlines.htm",
+        "final_url": "https://bescon.com.sg/Projects/Airlines.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon's Projects - Airlines Facilities",
+        "clean_text": "Bescon's Projects - Airlines Facilities Categories: Awards Airline Facilities Banking Facilities Commercial Community Centres Conservation & Development Data Centers Healthcare & Pharmaceutical Hotels Industrial/Specialised Factories Institution/Cultural Mass Rapid Transit (MRT) Recreational Religious Centres Residential Airlines Facilities Year 2010 to 2015 - Hangar 5 Modification @ Changi Airport - Trent XW8 Facility Building (Phase 1) to Existing Trent Engine Overhaul @ Loyang Way/Calshot Road - Erection of a 4-Storey with 3 Mezzanine Trent XWB Facility Building (Phase 2) to the existing Trent Engine Overhaul Complex at Calshot Road - Hangar 5 Modification @ Changi Airport Year 2009 - 2-Storey Engine Overhaul Building @ Loyang Way Year 2006 - Flight Training Centre with 3-Storey Office Year 2005 - Airfreight Terminal Building - Low Cost Carrier Passenger Terminal - Aircraft Hangars 4 & 5 @ Airlines Road - Inflight Kitchen cum Dormitories @ Maldives Year 2004 - Premium Class Kitchen @ 3rd Storey SICC1 Year 2003 - Research and Development Kitchen at SICC1 - Trent Engine Multi-Storey Carpark/Walkway - Bakery Extension @ 3rd Storey of the 4th Storey SATS Inflight Catering Centre 2 Research & Development Kitchen @ SICC1 Year 2001 - SATS Inflight Catering Centre 3 at Changi Road - Trent Engine Overhaul Complex Year 1996 - SIA Laundry Facilities at Loyang Crescent - SIA Airline Canteen - SATS Inflight Kitchen, Maldives - Aircraft Hangar, Brunei Year 1995 - Freezers Cold Room & Loading Doors @ Beijing Airport Year 1989 - SATS Inflight Kitchen, Maldives Year 1982 - SIA Changi Engineering Hangar Year 1981 - CAFHI Building Year 1980 - SIA Flight Operation Building Extension Year 1979 - SIA Cabin Crew Training Centre - SIA Technical Supplies Stores - SIA Engine Overhaul Base Workshop Year 1978 - SIA Engine Overhaul Base Extension Year 1977 - SIA B747 Hangar, Paya Lebar Year 1975 - SIA Engine Overhaul Base Year 1974 - SIA Engine Test Cell Year 1973 - SIA Flight Simulator Training Centre Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 2083,
+        "fetched_at": "2025-12-29T07:02:20"
+      },
+      {
+        "url": "https://bescon.com.sg/Projects/Banks.htm",
+        "final_url": "https://bescon.com.sg/Projects/Banks.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon's Projects - Banks",
+        "clean_text": "Bescon's Projects - Banks Categories: Awards Airline Facilities Banking Facilities Commercial Community Centres Conservation & Development Data Centers Healthcare & Pharmaceutical Hotels Industrial/Specialised Factories Institution/Cultural Mass Rapid Transit (MRT) Recreational Religious Centres Residential Banking Facilities Year 2016 to Current - POSB Jurong Point Branch - DBS Bishan Branch - DBS Bishan Branch - DBS Plaza Singapura Branch - DBS South Bridge Branch - DBS Towner Road Branch - DBS Thomson Branch and DBS Treasures at Thomson Year 2010 to 2015 - Credit Suisse @ One Changi City - Citi @ Asia Square Tower 1 - Citi, 3 Changi Business Park Crescent Year 1998 - Maybank at Lavender - Maybank at People's Park Centre Year 1996 - OUB Bank at Marina Square - Mitsubishi Bank at Tung Centre Year 1995 - Maybank at Balestier Year 1994 - DBS Bank at Liat Tower - OUB Bank at Grange Road Year 1993 - Maybank at Jalan Sultan Year 1992 - OUB Bank at South Bridge Road Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 1047,
+        "fetched_at": "2025-12-29T07:02:20"
+      },
+      {
+        "url": "https://bescon.com.sg/Projects/Commercial.htm",
+        "final_url": "https://bescon.com.sg/Projects/Commercial.htm",
+        "status_code": 200,
+        "content_type": "text/html",
+        "title": "Bescon's Projects - Commercial",
+        "clean_text": "Bescon's Projects - Commercial Categories: Awards Airline Facilities Banking Facilities Commercial Community Centres Conservation & Development Data Centers Healthcare & Pharmaceutical Hotels Industrial/Specialised Factories Institution/Cultural Mass Rapid Transit (MRT) Recreational Religious Centres Residential Commercial Year 2016 to Current - Punggol Neighbourhood Centre & Polyclinic - A/A works to existing Shaw House & Shaw Centre - A/A works to existing 32-Storey Commercial Development at Raffles Quay/Marina Boulevard - A/A and Change of use at Basement 1 to 5th Storey at Raffles City Shopping Centre - A/A to Shaw Cinema @ Jewel - A/A Shaw Cinema @ Paya Lebar Quarter - Bukit Timah Integrated Development - Oasis Terrace - AEI Works to Palais Renaissance at Orchard Road - 5/6-Storey Civic and Community Development at Punggol Drive Year 2010 to 2015 - Prinsep House - Tan Chong Tower - JEM - Jurong Point - New Facade & Upgrading works to NTUC Centre @ Bras Basah Road - 313 @ Somerset Road - Restack & Command Centre @ Toh Guan Road - National Design Centre @ 111 Middle Road - Relocation of HP Office @ Comtech Building to various locations at ATP A, ATP B and Harbourline - A/A to Podium Block of Tower 1 OUB Centre @ No. 1 Raffles Place - A/A to Existing Basement 1 to 7th Storey Shop & Office to Tang Plaza @ 310 Orchard Road - Phase 2 - MND Hub @ Jurong Gateway - Credit Suisse @ Changi Business Park L1 to L5 - A/A to the Existing 2 Block of linked 4-Storey Research & Development Building with Basement Carpark @ Science Park Road - AEI @ Changi South Lane - Fit-Outs Works to Cineplex at Seletar Mall Year 2009 - Cintech IV @ Science Park - Citi Campus @ Changi Business Park Avenue 3 Year 2007 - 4-Storey Entertainment Complex @ No. 3 Gatway Avenue, Sentosa - NTUC Supermarket @ Tampines Mall - NTUC Supermarket @ Pasir Ris Central St 3 (White Sand) - NTUC Supermarket @ Serangoon North Avenue 1 - NTUC Supermarket @ Hougang Avenue 4 - NTUC Supermarket @ Cambridge Road - NTUC Supermarket @ Limbang Shopping Centre - NTUC Supermarket @ Stirling Road Year 2006 - Crystal Jade Restaurants (At Various Location) - Villas @ Singapore Marriot Hotel - NEA Central Regional Office Upgrading Works - Bukit Panjang Plaza - Phase 2 (Extension) - NTUC Supermarket @ Hougang Lifestyle Mall Year 2005 - Lucasfilm Animation Studios - Ngee Ann City Upgrading & Improvement Works - C K Tang Shopping Centre Upgrading Works - Bukit Panjang Plaza - Phase 1 (Upgrading Works) - Crystal Jade @ Centrepoint - Crystal Jade @ Harper Road - NTUC Supermarket @ Choa Chu Kang Avenue 4 - NTUC Supermarket @ Bukit Panjang Year 2004 - Ngee Ann City Upgrading & Improvement Works - CPF Board @ Tampines - Crystal Jade @ Ngee Ann City - Crystal Jade @ Bugis Junction - Crystal Jade @ Suntec City - IGGY'S Italian Restaurant @ Regent Hotel - NTUC Supermarket @ Bukit Batok - NTUC Supermarket @ Senja Road - NTUC Supermarket @ Jurong East - NTUC Supermarket @ Tiong Bahru Plaza - NTUC Supermarket @ Depot Road - NTUC Supermarket @ Woodlands, Civic Center Year 2003 - Takashimaya Remodelling - Ngee Ann City Upgrading & Improvement Works - Upgrading of Lift System to Tangs Plaza Year 2002 - Ngee Ann City Upgrading & Improvement Works - Applied Materials SEA Technical Training and Engineering / Computer Centre at Changi Business Part Vista - Imperium Restaurant @ Ngee Ann City - My Humble House Restaurant @ The Esplanade Year 2001 - Ngee Ann City Upgrading & Improvement Works - Haagen Dag Kiok Year 1999 - Coffee Bean & Tea Leaf @ Republic Plaza - Coffee Bean & Tea Leaf @ Terminal 2 Changi Airport Year 1998 - AA Vehicle Inspection Complex @ Kaki Bukit Avenue 4 - Seoul Garden Korean @ Great World City - Seoul Garden Korean @ Wisma Atria - Seoul Garden Korean @ Marina Square - Seoul Garden Korean @ Junction 8 - Seoul Garden Korean @ Serangoon Garden - Coffee Bean & Tea Leaf @ Centre Point - Coffee Bean & Tea Leaf @ The Promaenade - Coffee Bean & Tea Leaf @ Ngee Ann City - Coffee Bean & Tea Leaf @ Chinatown Point - Coffee Bean & Tea Leaf @ Jalan Jamal at Siglap Year 1996 - Yue Hwa Chinese Products Shopping Mall - Seoul Garden Korean @ Tampines Mall Year 1995 - Merchant Square - Seoul Garden Korean @ Orchard Point - Seoul Garden Korean @ Bugis Junction Year 1994 - Seoul Garden Korean @ Bukit Timah Plaze - Palms Restaurant @ Bedok - Orix Car Bukit Batok East Service Stations - All Esso Stations (Year 1989 to 1994) Year 1993 - Ngee Ann City - Palms Restaurant @ Ngee Ann City Year 1992 - Vehicle Driving Test Centre @ Bukit Batok West Ave 5 Year 1991 - Kasbah Nightclub at Mandarin Hotel - Act 1 Bar at Mandarin Hotel - Top of the 'M' @ Mandarin Hotel Year 1990 - The Adelphi - Chatterbox @ Mandarin Hotel Year 1988 - Emerald Orchard Centre Year 1986 - GB Building (26 - Storey) - Burger King Restaurants Year 1985 - Italian Restaurant @ Orchard Tower - Hardee Fast Food - All Outlets - Noodle Restaurant @ Jurong Family Bowl Centre - Golden Lotus Noodle Restaurant - Denny Restaurant @ Orchard Tower Year 1984 - Strawberry's Field Lounge at UOL Building - 78 Shenton Way - OHL Building - Cafeteria @ Subordinate Court - Denny Restaurant @ Orchard Point Year 1983 - Fortune Centre - Fu Lu Shou Complex - A&W all outlets Year 1981 - Jalan Sultan Commercial/Entertainment Complex Year 1978 - The Plaza Blk 'A' & 'E' (32 Storey) Year 1976 - UOL Building (16-Storey) Home | Disclaimer | Site Map COPYRIGHT, BESCON CONSULTING ENGINEERS PTE",
+        "text_len": 5442,
+        "fetched_at": "2025-12-29T07:02:21"
+      }
+    ],
+    "links": [
+      "https://bescon.com.sg/About_Us.htm",
+      "https://bescon.com.sg/Our_Services.htm",
+      "https://bescon.com.sg/Projects/Our_Projects.htm",
+      "https://bescon.com.sg/Career.htm",
+      "https://bescon.com.sg/Contact_Us.htm",
+      "https://bescon.com.sg/default.htm",
+      "https://bescon.com.sg/Disclaimer.htm",
+      "https://bescon.com.sg/Site_Map.htm",
+      "https://bescon.com.sg/Projects/Airlines.htm",
+      "https://bescon.com.sg/Projects/Banks.htm",
+      "https://bescon.com.sg/Projects/Commercial.htm",
+      "https://bescon.com.sg/Projects/Community.htm",
+      "https://bescon.com.sg/Projects/Conserve_Develop.htm",
+      "https://bescon.com.sg/Projects/Data_Centers.htm",
+      "https://bescon.com.sg/Projects/Healthcare.htm",
+      "https://bescon.com.sg/Projects/Hotels.htm",
+      "https://bescon.com.sg/Projects/Industrial.htm",
+      "https://bescon.com.sg/Projects/Institution.htm",
+      "https://bescon.com.sg/Projects/MRT.htm",
+      "https://bescon.com.sg/Projects/Recreational.htm",
+      "https://bescon.com.sg/Projects/Religious.htm",
+      "https://bescon.com.sg/Projects/Residential.htm",
+      "https://bescon.com.sg/about_us.htm",
+      "https://bescon.com.sg/Contact_us.htm"
+    ],
+    "max_pages": 12
+  },
+  "chunks": [],
+  "heygen_liveavatar": {
+    "request_payload": {
+      "name": "BESCON1",
+      "opening_text": "Welcome to the Q & A session on BESCON1",
+      "prompt": "## PERSONA / ROLE\nYou are a passionate teacher acting as a mediator for learners.\nScope & safety:\nKeep the conversation focused exclusively on bescon and related information only.\nIf asked about any other topic, reply with exactly:\n\"Let us focus only on bescon only\"\nStyle & tone:\nUse short replies: 1–3 concise sentences or a short paragraph.\nBe clear, friendly, and encouraging.\n\n## COMPANY\nCompany: BESCON1\nWebsite: https://www.bescon.com.sg/\n\n## SOURCE MATERIAL (SCRAPED)\nUse the following scraped material as the knowledge base. Cite the source URL when helpful.\n\n(No scraped content was available.)",
+      "interactive_style": "conversational"
+    },
+    "response": {
+      "code": 1000,
+      "data": {
+        "name": "BESCON1",
+        "prompt": "## PERSONA / ROLE\nYou are a passionate teacher acting as a mediator for learners.\nScope & safety:\nKeep the conversation focused exclusively on bescon and related information only.\nIf asked about any other topic, reply with exactly:\n\"Let us focus only on bescon only\"\nStyle & tone:\nUse short replies: 1–3 concise sentences or a short paragraph.\nBe clear, friendly, and encouraging.\n\n## COMPANY\nCompany: BESCON1\nWebsite: https://www.bescon.com.sg/\n\n## SOURCE MATERIAL (SCRAPED)\nUse the following scraped material as the knowledge base. Cite the source URL when helpful.\n\n(No scraped content was available.)",
+        "opening_text": "Welcome to the Q & A session on BESCON1",
+        "id": "8bc0e142-442e-43d6-8b89-2909a5204394",
+        "links": [],
+        "created_at": "2025-12-29T07:02:22",
+        "updated_at": "2025-12-29T07:02:22"
+      },
+      "message": "Context created"
+    }
+  }
+}
