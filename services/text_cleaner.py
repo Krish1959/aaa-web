@@ -1,50 +1,76 @@
+# services/text_cleaner.py
+
 from __future__ import annotations
 
 import re
 from typing import Dict, List, Sequence, Tuple
 
 
+_WS_RE = re.compile(r"[ \t\r\f\v]+")
+_MULTI_NL_RE = re.compile(r"\n{3,}")
+
+
 def clean_text(text: str) -> str:
     """
-    Basic cleanup: collapse whitespace, keep newlines meaningful.
+    Conservative cleanup:
+      - normalize whitespace
+      - keep newlines meaningful
+      - remove very short noise lines
     """
     if not text:
         return ""
-    t = text.replace("\r\n", "\n").replace("\r", "\n")
-    # collapse repeated spaces/tabs
-    t = re.sub(r"[ \t]+", " ", t)
-    # collapse excessive blank lines
-    t = re.sub(r"\n{3,}", "\n\n", t)
-    return t.strip()
+
+    # normalize spaces per line
+    lines = []
+    for raw in text.splitlines():
+        s = _WS_RE.sub(" ", raw).strip()
+        # drop ultra-noisy tiny lines
+        if len(s) <= 1:
+            continue
+        lines.append(s)
+
+    out = "\n".join(lines)
+    out = _MULTI_NL_RE.sub("\n\n", out).strip()
+    return out
 
 
-def chunk_text_with_provenance(items: Sequence[Tuple[str, str]], chunk_size_words: int = 220) -> List[Dict[str, str]]:
+def chunk_text_with_provenance(text: str, max_chars: int = 2400) -> List[str]:
     """
-    items: [(url, cleaned_text)]
-    returns: [{chunk_id, url, text}]
-    chunk_id: 000, 001, ...
+    Split large text into chunks (by paragraphs) roughly <= max_chars.
     """
-    chunks: List[Dict[str, str]] = []
-    idx = 0
+    if not text:
+        return []
 
-    for url, text in items:
-        words = text.split()
-        if not words:
+    paras = [p.strip() for p in text.split("\n\n") if p.strip()]
+    chunks: List[str] = []
+    buf: List[str] = []
+    size = 0
+
+    for p in paras:
+        if not p:
+            continue
+        p_len = len(p)
+
+        # If a single paragraph is huge, hard-split it
+        if p_len > max_chars:
+            if buf:
+                chunks.append("\n\n".join(buf).strip())
+                buf, size = [], 0
+            # split long paragraph into slices
+            for i in range(0, p_len, max_chars):
+                chunks.append(p[i : i + max_chars].strip())
             continue
 
-        start = 0
-        while start < len(words):
-            end = min(start + chunk_size_words, len(words))
-            piece = " ".join(words[start:end]).strip()
-            if piece:
-                chunks.append(
-                    {
-                        "chunk_id": f"{idx:03d}",
-                        "url": url,
-                        "text": piece,
-                    }
-                )
-                idx += 1
-            start = end
+        if size + p_len + (2 if buf else 0) <= max_chars:
+            buf.append(p)
+            size += p_len + (2 if buf else 0)
+        else:
+            if buf:
+                chunks.append("\n\n".join(buf).strip())
+            buf = [p]
+            size = p_len
+
+    if buf:
+        chunks.append("\n\n".join(buf).strip())
 
     return chunks
